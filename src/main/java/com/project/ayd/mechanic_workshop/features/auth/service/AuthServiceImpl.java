@@ -12,11 +12,15 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -46,7 +50,7 @@ public class AuthServiceImpl implements AuthService {
                 throw new BadCredentialsException("Account is temporarily locked. Try again later.");
             }
 
-            Authentication authentication = authenticationManager.authenticate(
+            authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
 
             resetFailedAttempts(user);
@@ -87,8 +91,12 @@ public class AuthServiceImpl implements AuthService {
         user.setLastLogin(LocalDateTime.now());
         userRepository.save(user);
 
+        // Crear authentication con las autoridades correctas
+        List<GrantedAuthority> authorities = Collections.singletonList(
+                new SimpleGrantedAuthority("ROLE_" + user.getUserType().getName().toUpperCase()));
+
         Authentication authentication = new UsernamePasswordAuthenticationToken(
-                user.getUsername(), null, null);
+                user.getUsername(), null, authorities);
 
         String accessToken = tokenProvider.generateAccessToken(authentication);
         String refreshToken = tokenProvider.generateRefreshToken(authentication);
@@ -182,8 +190,12 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findActiveByUsername(username)
                 .orElseThrow(() -> new BadCredentialsException("User not found"));
 
+        // Crear authentication con las autoridades correctas
+        List<GrantedAuthority> authorities = Collections.singletonList(
+                new SimpleGrantedAuthority("ROLE_" + user.getUserType().getName().toUpperCase()));
+
         Authentication authentication = new UsernamePasswordAuthenticationToken(
-                username, null, null);
+                username, null, authorities);
 
         String newAccessToken = tokenProvider.generateAccessToken(authentication);
         String newRefreshToken = tokenProvider.generateRefreshToken(authentication);

@@ -16,4 +16,6 @@ public interface PersonRepository extends JpaRepository<Person, String> {
     boolean existsByEmail(String email);
 
     boolean existsByNit(String nit);
+
+    boolean existsByCui(String cui);
 }
