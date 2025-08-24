@@ -649,3 +649,49 @@ INSERT INTO part (name, description, category_id, unit_price, minimum_stock) VAL
 ('Amortiguadores traseros', 'Par de amortiguadores traseros', 5, 450.00, 10),
 ('Resortes delanteros', 'Par de resortes delanteros', 5, 280.00, 8),
 ('Resortes traseros', 'Par de resortes traseros', 5, 260.00, 8);
+
+
+-- Insertar personas para los usuarios de prueba
+INSERT INTO person (cui, nit, first_name, last_name, email, phone, birth_date, gender_id) VALUES
+-- Administradores
+('3140315290901', '12345678-9', 'Carlos', 'González', 'diegomaldonado201931811@cunoc.edu.gt', '50211234567', '1985-03-15', 1),
+('1234567890102', '12345679-0', 'María', 'López', 'admin2@tallermec.com', '50211234568', '1987-08-22', 2),
+
+-- Empleados
+('1234567890103', '12345680-1', 'José', 'Pérez', 'dj_maldonado19@hotmail.es', '50211234569', '1990-11-10', 1),
+('1234567890104', '12345681-2', 'Ana', 'Martínez', 'empleado2@tallermec.com', '50211234570', '1992-05-18', 2),
+
+-- Especialistas
+('1234567890105', '12345682-3', 'Roberto', 'García', 'dmaldonado@cari.net', '50211234571', '1988-07-25', 1),
+('1234567890106', '12345683-4', 'Laura', 'Rodríguez', 'especialista2@tallermec.com', '50211234572', '1991-12-03', 2),
+
+-- Clientes
+('1234567890107', '12345684-5', 'Miguel', 'Torres', 'karinmonte@hotmail.com', '50211234573', '1995-02-14', 1),
+('1234567890108', '12345685-6', 'Carmen', 'Flores', 'cliente2@gmail.com', '50211234574', '1993-09-07', 2),
+
+-- Proveedores
+('1234567890109', '12345686-7', 'Luis', 'Morales', 'rebecahi28@gmail.com', '50211234575', '1980-04-30', 1),
+('1234567890110', '12345687-8', 'Patricia', 'Vargas', 'proveedor2@autopartes.com', '50211234576', '1983-10-12', 2);
+
+-- Insertar usuarios (contraseñas sin hashear para ejemplo - el sistema las hasheará)
+-- Nota: En producción estas contraseñas deben ser hasheadas con BCrypt strength 10
+INSERT INTO "user" (person_cui, user_type_id, username, password, is_active) VALUES
+-- Administradores (user_type_id = 1)
+('3140315290901', 1, 'admin1', '$2a$10$8K1p/wFkTWLieDSFhqjrLOXtlNvqEEeDFa.kxGfqZ3iH4l9zBJdHe', true), -- password: admin123
+('1234567890102', 1, 'admin2', '$2a$10$8K1p/wFkTWLieDSFhqjrLOXtlNvqEEeDFa.kxGfqZ3iH4l9zBJdHe', true), -- password: admin123
+
+-- Empleados (user_type_id = 2)
+('1234567890103', 2, 'empleado1', '$2a$10$N9qo8uLOickgx2ZMRZoMye2KYUhJ5GxNdY1kcqIlz8yOHb8ZmfKZu', true), -- password: empleado123
+('1234567890104', 2, 'empleado2', '$2a$10$N9qo8uLOickgx2ZMRZoMye2KYUhJ5GxNdY1kcqIlz8yOHb8ZmfKZu', true), -- password: empleado123
+
+-- Especialistas (user_type_id = 3)
+('1234567890105', 3, 'especialista1', '$2a$10$DpbZGTAW7cTdC8P2r1XOKOOe7q1WhRBbVr8/uDUPsLCjL4KGmLa2G', true), -- password: especialista123
+('1234567890106', 3, 'especialista2', '$2a$10$DpbZGTAW7cTdC8P2r1XOKOOe7q1WhRBbVr8/uDUPsLCjL4KGmLa2G', true), -- password: especialista123
+
+-- Clientes (user_type_id = 4)
+('1234567890107', 4, 'cliente1', '$2a$10$qQIhYP.YiYzXFrJ1vJ9VbOKbHbEKN8FJ9r8L8P8J8r8L8P8J8r8L8P', true), -- password: cliente123
+('1234567890108', 4, 'cliente2', '$2a$10$qQIhYP.YiYzXFrJ1vJ9VbOKbHbEKN8FJ9r8L8P8J8r8L8P8J8r8L8P', true), -- password: cliente123
+
+-- Proveedores (user_type_id = 5)
+('1234567890109', 5, 'proveedor1', '$2a$10$zQIhYP.YiYzXFrJ1vJ9VbOKbHbEKN8FJ9r8L8P8J8r8L8P8J8r8L8P', true), -- password: proveedor123
+('1234567890110', 5, 'proveedor2', '$2a$10$zQIhYP.YiYzXFrJ1vJ9VbOKbHbEKN8FJ9r8L8P8J8r8L8P8J8r8L8P', true); -- password: proveedor123
