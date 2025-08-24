@@ -5,7 +5,6 @@ import com.project.ayd.mechanic_workshop.features.users.dto.PasswordChangeReques
 import com.project.ayd.mechanic_workshop.features.users.dto.UpdateUserRequest;
 import com.project.ayd.mechanic_workshop.features.users.dto.UserResponse;
 import com.project.ayd.mechanic_workshop.features.users.service.UserService;
-import com.project.ayd.mechanic_workshop.features.users.dto.PasswordChangeRequest;
 import com.project.ayd.mechanic_workshop.features.auth.repository.UserRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +25,7 @@ import java.util.Map;
 public class AdminController {
 
     private final UserService userService;
+    private final UserRepository userRepository;
 
     @GetMapping
     public ResponseEntity<List<UserResponse>> getAllUsers() {
@@ -134,17 +134,19 @@ public class AdminController {
     @GetMapping("/statistics")
     public ResponseEntity<Map<String, Object>> getUserStatistics() {
         Long totalUsers = userRepository.count();
-        Long activeUsers = userRepository.countActiveUsersByType(""); // Modificar query
         Long totalAdmins = userRepository.countActiveUsersByType("Administrador");
         Long totalEmployees = userRepository.countActiveUsersByType("Empleado");
+        Long totalSpecialists = userRepository.countActiveUsersByType("Especialista");
         Long totalClients = userRepository.countActiveUsersByType("Cliente");
+        Long totalProviders = userRepository.countActiveUsersByType("Proveedor");
 
         Map<String, Object> stats = Map.of(
                 "totalUsers", totalUsers,
-                "activeUsers", activeUsers,
                 "totalAdmins", totalAdmins,
                 "totalEmployees", totalEmployees,
-                "totalClients", totalClients);
+                "totalSpecialists", totalSpecialists,
+                "totalClients", totalClients,
+                "totalProviders", totalProviders);
 
         return ResponseEntity.ok(stats);
     }
