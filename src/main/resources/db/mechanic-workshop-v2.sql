@@ -204,6 +204,16 @@ CREATE TABLE "user" (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- password reset tokens table for auth
+CREATE TABLE password_reset_token (
+    id SERIAL PRIMARY KEY,
+    token VARCHAR(255) NOT NULL UNIQUE,
+    user_id INTEGER NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+    expires_at TIMESTAMP NOT NULL,
+    used BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Employee specializations
 CREATE TABLE employee_specialization (
     id SERIAL PRIMARY KEY,
@@ -416,6 +426,11 @@ CREATE TABLE client_feedback (
 CREATE INDEX idx_user_person_cui ON "user"(person_cui);
 CREATE INDEX idx_user_user_type ON "user"(user_type_id);
 CREATE INDEX idx_user_username ON "user"(username);
+
+-- Index for password reset tokens
+CREATE INDEX idx_password_reset_token_token ON password_reset_token(token);
+CREATE INDEX idx_password_reset_token_user ON password_reset_token(user_id);
+CREATE INDEX idx_password_reset_token_expires ON password_reset_token(expires_at);
 
 -- Vehicles table indexes
 CREATE INDEX idx_vehicle_owner ON vehicle(owner_cui);
