@@ -20,4 +20,12 @@ public interface EmployeeSpecializationRepository extends JpaRepository<Employee
             @Param("specializationTypeId") Long specializationTypeId);
 
     boolean existsByUserIdAndSpecializationTypeIdAndIsActiveTrue(Long userId, Long specializationTypeId);
+
+    @Query("SELECT COUNT(es) FROM EmployeeSpecialization es WHERE es.user.id = :userId AND es.isActive = true")
+    Long countActiveSpecializationsByUser(@Param("userId") Long userId);
+
+    @Query("SELECT es FROM EmployeeSpecialization es WHERE es.specializationType.name LIKE %:specializationName% AND es.isActive = true")
+    List<EmployeeSpecialization> findBySpecializationNameContaining(
+            @Param("specializationName") String specializationName);
+
 }

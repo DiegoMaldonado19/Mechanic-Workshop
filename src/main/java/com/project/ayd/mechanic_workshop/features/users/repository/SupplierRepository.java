@@ -25,4 +25,10 @@ public interface SupplierRepository extends JpaRepository<Supplier, Long> {
     boolean existsByPersonCui(String cui);
 
     boolean existsByContactEmail(String email);
+
+    @Query("SELECT s FROM Supplier s WHERE s.person.firstName LIKE %:name% OR s.person.lastName LIKE %:name% OR s.companyName LIKE %:name%")
+    List<Supplier> findByAnyNameContaining(@Param("name") String name);
+
+    @Query("SELECT COUNT(s) FROM Supplier s WHERE s.isActive = true")
+    Long countActiveSuppliers();
 }

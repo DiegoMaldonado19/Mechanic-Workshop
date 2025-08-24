@@ -32,6 +32,7 @@ public class UserServiceImpl implements UserService {
     private final UserTypeRepository userTypeRepository;
     private final GenderRepository genderRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserValidationService userValidationService;
 
     @Override
     @Transactional
@@ -111,6 +112,8 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userId));
 
+        userValidationService.validateUserCanBeDeleted(user);
+
         userRepository.delete(user);
         log.info("User deleted successfully with ID: {}", userId);
     }
@@ -131,6 +134,8 @@ public class UserServiceImpl implements UserService {
     public void deactivateUser(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userId));
+
+        userValidationService.validateUserCanBeDeactivated(user);
 
         user.setIsActive(false);
         userRepository.save(user);
@@ -227,5 +232,70 @@ public class UserServiceImpl implements UserService {
                 .lastLogin(user.getLastLogin())
                 .createdAt(user.getCreatedAt())
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public void changeUserPassword(Long userId, String newPassword) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userId));
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setFailedLoginAttempts(0);
+        user.setLockedUntil(null);
+
+        userRepository.save(user);
+        log.info("Password changed for user ID: {}", userId);
+    }
+
+    @Override
+    @Transactional
+    public void resetUserPassword(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userId));
+
+        // Generar contraseña temporal
+        String temporaryPassword = generateTemporaryPassword();
+        user.setPassword(passwordEncoder.encode(temporaryPassword));
+        user.setFailedLoginAttempts(0);
+        user.setLockedUntil(null);
+
+        userRepository.save(user);
+
+        // Aquí podrías enviar la contraseña temporal por email
+        log.info("Password reset for user ID: {}. Temporary password: {}", userId, temporaryPassword);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserResponse> searchUsersByEmail(String email) {
+        return userRepository.findByEmailContaining(email).stream()
+                .map(this::mapToUserResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserResponse> searchUsersByName(String name) {
+        return userRepository.findByNameContaining(name).stream()
+                .map(this::mapToUserResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserResponse> getUsersByStatus(Boolean isActive) {
+        return userRepository.findByIsActive(isActive).stream()
+                .map(this::mapToUserResponse)
+                .collect(Collectors.toList());
+    }
+
+    private String generateTemporaryPassword() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        StringBuilder password = new StringBuilder();
+        for (int i = 0; i < 8; i++) {
+            password.append(chars.charAt((int) (Math.random() * chars.length())));
+        }
+        return password.toString();
     }
 }

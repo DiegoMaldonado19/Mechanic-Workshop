@@ -50,4 +50,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("SELECT u FROM User u WHERE u.isActive = :isActive")
     List<User> findByIsActive(@Param("isActive") Boolean isActive);
+
+    @Query("SELECT COUNT(u) FROM User u WHERE u.userType.name = :userTypeName AND u.isActive = true")
+    Long countActiveUsersByType(@Param("userTypeName") String userTypeName);
+
+    @Query("SELECT u FROM User u WHERE u.createdAt BETWEEN :startDate AND :endDate")
+    List<User> findUsersCreatedBetween(@Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
 }

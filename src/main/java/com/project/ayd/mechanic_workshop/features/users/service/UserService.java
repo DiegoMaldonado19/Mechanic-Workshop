@@ -29,4 +29,14 @@ public interface UserService {
     void activateUser(Long userId);
 
     void deactivateUser(Long userId);
+
+    void changeUserPassword(Long userId, String newPassword);
+
+    void resetUserPassword(Long userId);
+
+    List<UserResponse> searchUsersByEmail(String email);
+
+    List<UserResponse> searchUsersByName(String name);
+
+    List<UserResponse> getUsersByStatus(Boolean isActive);
 }
