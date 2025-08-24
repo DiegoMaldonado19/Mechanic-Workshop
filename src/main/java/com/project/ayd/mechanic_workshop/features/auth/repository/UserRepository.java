@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -32,4 +33,28 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("SELECT u FROM User u WHERE u.lockedUntil IS NOT NULL AND u.lockedUntil < :now")
     Iterable<User> findUsersToUnlock(@Param("now") LocalDateTime now);
+
+    @Query("SELECT u FROM User u WHERE u.userType.name = :userTypeName")
+    List<User> findByUserTypeName(@Param("userTypeName") String userTypeName);
+
+    Optional<User> findByPersonCui(String cui);
+
+    @Query("SELECT u FROM User u WHERE u.person.cui = :cui AND u.isActive = true")
+    Optional<User> findActiveByPersonCui(@Param("cui") String cui);
+
+    @Query("SELECT u FROM User u WHERE u.person.email LIKE %:email%")
+    List<User> findByEmailContaining(@Param("email") String email);
+
+    @Query("SELECT u FROM User u WHERE u.person.firstName LIKE %:name% OR u.person.lastName LIKE %:name%")
+    List<User> findByNameContaining(@Param("name") String name);
+
+    @Query("SELECT u FROM User u WHERE u.isActive = :isActive")
+    List<User> findByIsActive(@Param("isActive") Boolean isActive);
+
+    @Query("SELECT COUNT(u) FROM User u WHERE u.userType.name = :userTypeName AND u.isActive = true")
+    Long countActiveUsersByType(@Param("userTypeName") String userTypeName);
+
+    @Query("SELECT u FROM User u WHERE u.createdAt BETWEEN :startDate AND :endDate")
+    List<User> findUsersCreatedBetween(@Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
 }
