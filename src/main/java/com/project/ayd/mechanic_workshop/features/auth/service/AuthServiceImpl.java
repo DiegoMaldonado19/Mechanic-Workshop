@@ -3,6 +3,7 @@ package com.project.ayd.mechanic_workshop.features.auth.service;
 import com.project.ayd.mechanic_workshop.features.auth.dto.*;
 import com.project.ayd.mechanic_workshop.features.auth.entity.*;
 import com.project.ayd.mechanic_workshop.features.auth.repository.*;
+import com.project.ayd.mechanic_workshop.features.auth.security.CustomUserDetailsService;
 import com.project.ayd.mechanic_workshop.features.auth.security.JwtTokenProvider;
 import com.project.ayd.mechanic_workshop.features.auth.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
@@ -12,15 +13,12 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +33,7 @@ public class AuthServiceImpl implements AuthService {
     private final GenderRepository genderRepository;
     private final PasswordEncoder passwordEncoder;
     private final TwoFactorAuthService twoFactorAuthService;
+    private final CustomUserDetailsService userDetailsService;
 
     private static final int MAX_FAILED_ATTEMPTS = 3;
     private static final int LOCKOUT_DURATION_MINUTES = 15;
@@ -91,12 +90,12 @@ public class AuthServiceImpl implements AuthService {
         user.setLastLogin(LocalDateTime.now());
         userRepository.save(user);
 
-        // Crear authentication con las autoridades correctas
-        List<GrantedAuthority> authorities = Collections.singletonList(
-                new SimpleGrantedAuthority("ROLE_" + user.getUserType().getName().toUpperCase()));
+        // Cargar UserDetails usando el CustomUserDetailsService
+        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
 
+        // Crear authentication con UserDetails
         Authentication authentication = new UsernamePasswordAuthenticationToken(
-                user.getUsername(), null, authorities);
+                userDetails, null, userDetails.getAuthorities());
 
         String accessToken = tokenProvider.generateAccessToken(authentication);
         String refreshToken = tokenProvider.generateRefreshToken(authentication);
@@ -190,12 +189,12 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findActiveByUsername(username)
                 .orElseThrow(() -> new BadCredentialsException("User not found"));
 
-        // Crear authentication con las autoridades correctas
-        List<GrantedAuthority> authorities = Collections.singletonList(
-                new SimpleGrantedAuthority("ROLE_" + user.getUserType().getName().toUpperCase()));
+        // Cargar UserDetails usando el CustomUserDetailsService
+        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
+        // Crear authentication con UserDetails
         Authentication authentication = new UsernamePasswordAuthenticationToken(
-                username, null, authorities);
+                userDetails, null, userDetails.getAuthorities());
 
         String newAccessToken = tokenProvider.generateAccessToken(authentication);
         String newRefreshToken = tokenProvider.generateRefreshToken(authentication);
