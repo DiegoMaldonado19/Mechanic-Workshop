@@ -1,0 +1,18 @@
+package com.project.ayd.mechanic_workshop.features.users.enums;
+
+public enum SpecialtyType {
+    ELECTRICIDAD_AUTOMOTRIZ,
+    DIAGNOSTICO_COMPUTARIZADO,
+    SISTEMAS_FRENOS,
+    REPARACION_MOTORES,
+    TRANSMISION,
+    AIRE_ACONDICIONADO,
+    SUSPENSION,
+    DIRECCION,
+    INYECCION_ELECTRONICA,
+    TURBO_SOBREALIMENTACION,
+    HIBRIDOS,
+    DIESEL,
+    CARROCERIA,
+    PINTURA
+}
