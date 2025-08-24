@@ -16,6 +16,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/reference")
@@ -124,5 +125,20 @@ public class ReferenceDataController {
     public ResponseEntity<SpecializationTypeResponse> getSpecializationTypeById(@PathVariable Long id) {
         SpecializationTypeResponse specializationType = specializationTypeService.getSpecializationTypeById(id);
         return ResponseEntity.ok(specializationType);
+    }
+
+    @PutMapping("/addresses/{id}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<AddressDetailResponse> updateAddressDetail(@PathVariable Long id,
+            @Valid @RequestBody AddressDetailRequest request) {
+        AddressDetailResponse address = geographicDataService.updateAddressDetail(id, request);
+        return ResponseEntity.ok(address);
+    }
+
+    @DeleteMapping("/addresses/{id}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<Map<String, String>> deleteAddressDetail(@PathVariable Long id) {
+        geographicDataService.deleteAddressDetail(id);
+        return ResponseEntity.ok(Map.of("message", "Address detail deleted successfully"));
     }
 }

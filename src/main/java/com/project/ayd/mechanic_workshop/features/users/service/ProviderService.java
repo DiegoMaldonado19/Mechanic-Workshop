@@ -1,6 +1,7 @@
 package com.project.ayd.mechanic_workshop.features.users.service;
 
 import com.project.ayd.mechanic_workshop.features.users.dto.ProviderRequest;
+import com.project.ayd.mechanic_workshop.features.users.dto.ProviderUpdateRequest;
 import com.project.ayd.mechanic_workshop.features.users.dto.UserResponse;
 
 import java.util.List;
@@ -24,4 +25,6 @@ public interface ProviderService {
     void activateProvider(Long providerId);
 
     void deactivateProvider(Long providerId);
+
+    UserResponse updateProvider(Long providerId, ProviderUpdateRequest request);
 }

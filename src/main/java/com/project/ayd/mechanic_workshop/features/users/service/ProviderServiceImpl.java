@@ -3,6 +3,7 @@ package com.project.ayd.mechanic_workshop.features.users.service;
 import com.project.ayd.mechanic_workshop.features.auth.entity.Person;
 import com.project.ayd.mechanic_workshop.features.auth.repository.PersonRepository;
 import com.project.ayd.mechanic_workshop.features.users.dto.ProviderRequest;
+import com.project.ayd.mechanic_workshop.features.users.dto.ProviderUpdateRequest;
 import com.project.ayd.mechanic_workshop.features.users.dto.UserResponse;
 import com.project.ayd.mechanic_workshop.features.users.entity.Supplier;
 import com.project.ayd.mechanic_workshop.features.users.repository.SupplierRepository;
@@ -173,5 +174,43 @@ public class ProviderServiceImpl implements ProviderService {
         }
 
         return builder.build();
+    }
+
+    @Override
+    @Transactional
+    public UserResponse updateProvider(Long providerId, ProviderUpdateRequest request) {
+        Supplier supplier = supplierRepository.findById(providerId)
+                .orElseThrow(() -> new IllegalArgumentException("Provider not found with ID: " + providerId));
+
+        // Actualizar datos de persona si existe
+        if (supplier.getPerson() != null) {
+            Person person = supplier.getPerson();
+            if (request.getNit() != null)
+                person.setNit(request.getNit());
+            if (request.getFirstName() != null)
+                person.setFirstName(request.getFirstName());
+            if (request.getLastName() != null)
+                person.setLastName(request.getLastName());
+            if (request.getContactEmail() != null)
+                person.setEmail(request.getContactEmail());
+            if (request.getContactPhone() != null)
+                person.setPhone(request.getContactPhone());
+            personRepository.save(person);
+        }
+
+        // Actualizar datos del proveedor
+        if (request.getCompanyName() != null)
+            supplier.setCompanyName(request.getCompanyName());
+        if (request.getContactEmail() != null)
+            supplier.setContactEmail(request.getContactEmail());
+        if (request.getContactPhone() != null)
+            supplier.setContactPhone(request.getContactPhone());
+        if (request.getAddressDetailId() != null)
+            supplier.setAddressDetailId(request.getAddressDetailId());
+
+        supplier = supplierRepository.save(supplier);
+        log.info("Provider updated successfully with ID: {}", providerId);
+
+        return mapToProviderResponse(supplier);
     }
 }

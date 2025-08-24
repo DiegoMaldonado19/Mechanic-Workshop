@@ -1,6 +1,7 @@
 package com.project.ayd.mechanic_workshop.features.users.controller;
 
 import com.project.ayd.mechanic_workshop.features.users.dto.ProviderRequest;
+import com.project.ayd.mechanic_workshop.features.users.dto.ProviderUpdateRequest;
 import com.project.ayd.mechanic_workshop.features.users.dto.UserResponse;
 import com.project.ayd.mechanic_workshop.features.users.service.ProviderService;
 import jakarta.validation.Valid;
@@ -82,5 +83,13 @@ public class ProviderController {
     public ResponseEntity<Map<String, String>> deactivateProvider(@PathVariable Long providerId) {
         providerService.deactivateProvider(providerId);
         return ResponseEntity.ok(Map.of("message", "Provider deactivated successfully"));
+    }
+
+    @PutMapping("/{providerId}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<UserResponse> updateProvider(@PathVariable Long providerId,
+            @Valid @RequestBody ProviderUpdateRequest request) {
+        UserResponse provider = providerService.updateProvider(providerId, request);
+        return ResponseEntity.ok(provider);
     }
 }

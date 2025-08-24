@@ -21,4 +21,8 @@ public interface GeographicDataService {
     List<AddressDetailResponse> getAddressDetailsByMunicipality(Long municipalityId);
 
     AddressDetailResponse getAddressDetailById(Long id);
+
+    AddressDetailResponse updateAddressDetail(Long id, AddressDetailRequest request);
+
+    void deleteAddressDetail(Long id);
 }

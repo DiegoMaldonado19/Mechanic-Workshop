@@ -125,4 +125,33 @@ public class GeographicDataServiceImpl implements GeographicDataService {
                 .updatedAt(addressDetail.getUpdatedAt())
                 .build();
     }
+
+    @Override
+    @Transactional
+    public AddressDetailResponse updateAddressDetail(Long id, AddressDetailRequest request) {
+        AddressDetail addressDetail = addressDetailRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Address detail not found with ID: " + id));
+
+        Municipality municipality = municipalityRepository.findById(request.getMunicipalityId())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Municipality not found with ID: " + request.getMunicipalityId()));
+
+        addressDetail.setAddress(request.getAddress());
+        addressDetail.setMunicipality(municipality);
+
+        addressDetail = addressDetailRepository.save(addressDetail);
+        log.info("Address detail updated with ID: {}", id);
+
+        return mapToAddressDetailResponse(addressDetail);
+    }
+
+    @Override
+    @Transactional
+    public void deleteAddressDetail(Long id) {
+        AddressDetail addressDetail = addressDetailRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Address detail not found with ID: " + id));
+
+        addressDetailRepository.delete(addressDetail);
+        log.info("Address detail deleted with ID: {}", id);
+    }
 }
