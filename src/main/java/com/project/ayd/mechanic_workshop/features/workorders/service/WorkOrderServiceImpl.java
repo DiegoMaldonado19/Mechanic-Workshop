@@ -12,6 +12,7 @@ import com.project.ayd.mechanic_workshop.features.workorders.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -250,6 +251,52 @@ public class WorkOrderServiceImpl implements WorkOrderService {
                 work = workRepository.save(work);
 
                 log.info("Work order cancelled successfully");
+                return mapToWorkOrderResponse(work);
+        }
+
+        @Override
+        @Transactional
+        public WorkOrderResponse finishWithoutExecution(Long workOrderId, String reason) {
+                log.info("Finishing work order without execution with ID: {}", workOrderId);
+
+                Work work = workRepository.findById(workOrderId)
+                                .orElseThrow(() -> new IllegalArgumentException(
+                                                "Work order not found with ID: " + workOrderId));
+
+                // Verificar que el trabajo no esté en progreso
+                if (work.getWorkStatus().getId().equals(WorkOrderStatus.IN_PROGRESS.getId())) {
+                        throw new IllegalStateException(
+                                        "Cannot finish without execution a work order that is in progress");
+                }
+
+                WorkStatus finishedWithoutExecutionStatus = workStatusRepository
+                                .findById(WorkOrderStatus.FINISHED_WITHOUT_EXECUTION.getId())
+                                .orElseThrow(() -> new IllegalArgumentException(
+                                                "Finished without execution status not found"));
+
+                // Liberar empleado asignado para nueva asignación
+                User previouslyAssignedEmployee = work.getAssignedEmployee();
+                work.setAssignedEmployee(null);
+                work.setWorkStatus(finishedWithoutExecutionStatus);
+                work.setCompletedAt(LocalDateTime.now());
+                work.setClientApproved(false);
+
+                work = workRepository.save(work);
+
+                // Registrar en progress el motivo del cierre sin ejecución
+                if (reason != null && !reason.isEmpty()) {
+                        WorkProgress closeProgress = WorkProgress.builder()
+                                        .work(work)
+                                        .user(getCurrentUser())
+                                        .progressDescription("Trabajo finalizado sin ejecución")
+                                        .observations("Motivo: " + reason)
+                                        .build();
+                        workProgressRepository.save(closeProgress);
+                }
+
+                log.info("Work order finished without execution successfully. Employee {} is now available for reassignment",
+                                previouslyAssignedEmployee != null ? previouslyAssignedEmployee.getId() : "none");
+
                 return mapToWorkOrderResponse(work);
         }
 
