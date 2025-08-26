@@ -174,7 +174,8 @@ public class AdditionalServiceServiceImpl implements AdditionalServiceService {
         }
 
         String currentUserCui = SecurityContextHolder.getContext().getAuthentication().getName();
-        if (!work.getVehicle().getOwner().getCui().equals(currentUser.getPerson().getCui())) {
+
+        if (!serviceRequest.getWork().getVehicle().getOwner().getCui().equals(currentUserCui)) {
             throw new IllegalStateException("You can only approve services for your own vehicles");
         }
 
@@ -197,7 +198,8 @@ public class AdditionalServiceServiceImpl implements AdditionalServiceService {
                 .orElseThrow(() -> new IllegalArgumentException("Additional service request not found"));
 
         String currentUserCui = SecurityContextHolder.getContext().getAuthentication().getName();
-        if (!work.getVehicle().getOwner().getCui().equals(currentUser.getPerson().getCui())) {
+
+        if (!serviceRequest.getWork().getVehicle().getOwner().getCui().equals(currentUserCui)) {
             throw new IllegalStateException("You can only reject services for your own vehicles");
         }
 

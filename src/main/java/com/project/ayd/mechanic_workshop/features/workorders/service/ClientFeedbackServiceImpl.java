@@ -158,20 +158,14 @@ public class ClientFeedbackServiceImpl implements ClientFeedbackService {
         Work work = workRepository.findById(workId)
                 .orElseThrow(() -> new IllegalArgumentException("Work order not found"));
 
-        // Verificar que el trabajo esté completado
         if (!work.getWorkStatus().getId().equals(WorkOrderStatus.COMPLETED.getId())) {
             return false;
         }
 
-        Person client = personRepository.findByCui(clientCui)
-                .orElseThrow(() -> new IllegalArgumentException("Client not found with CUI: " + clientCui));
-
-        // Verificar que es el propietario del vehículo
-        if (!work.getVehicle().getOwner().getCui().equals(currentUser.getPerson().getCui())) {
+        if (!work.getVehicle().getOwner().getCui().equals(clientCui)) {
             return false;
         }
 
-        // Verificar que no hay feedback previo
         return !clientFeedbackRepository.existsByWorkIdAndClientCui(workId, clientCui);
     }
 
