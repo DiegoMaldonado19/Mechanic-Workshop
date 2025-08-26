@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -51,4 +52,18 @@ public interface WorkRepository extends JpaRepository<Work, Long> {
 
     @Query("SELECT w FROM Work w WHERE w.assignedEmployee.id = :employeeId AND w.workStatus.id IN (2, 3) ORDER BY w.priorityLevel DESC, w.createdAt ASC")
     List<Work> findActiveWorksByEmployeeId(@Param("employeeId") Long employeeId);
+
+    @Query("""
+            SELECT w FROM Work w
+            LEFT JOIN FETCH w.vehicle v
+            LEFT JOIN FETCH v.owner p
+            LEFT JOIN FETCH w.workParts wp
+            LEFT JOIN FETCH w.quotations q
+            WHERE w.createdAt BETWEEN :startDate AND :endDate
+            """)
+    List<Work> findWorksForReporting(@Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
+
+    @Query("SELECT SUM(w.actualCost) FROM Work w WHERE w.workStatus.name = 'COMPLETADO'")
+    BigDecimal getTotalRevenue();
 }

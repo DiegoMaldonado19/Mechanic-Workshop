@@ -94,4 +94,25 @@ public class Work {
 
     @OneToMany(mappedBy = "work", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Quotation> quotations;
+
+    @OneToMany(mappedBy = "work", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<ClientFeedback> clientFeedbacks;
+
+    public BigDecimal calculateTotalPartsCost() {
+        if (workParts == null)
+            return BigDecimal.ZERO;
+        return workParts.stream()
+                .filter(wp -> wp.getQuantityUsed() != null && wp.getUnitPrice() != null)
+                .map(wp -> wp.getUnitPrice().multiply(BigDecimal.valueOf(wp.getQuantityUsed())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    public BigDecimal calculateTotalLaborHours() {
+        if (workProgressList == null)
+            return BigDecimal.ZERO;
+        return workProgressList.stream()
+                .filter(wp -> wp.getHoursWorked() != null)
+                .map(WorkProgress::getHoursWorked)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
 }

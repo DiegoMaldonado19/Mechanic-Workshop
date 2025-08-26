@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -632,5 +633,18 @@ public class WorkOrderServiceImpl implements WorkOrderService {
                                 .description(workStatus.getDescription())
                                 .createdAt(workStatus.getCreatedAt())
                                 .build();
+        }
+
+        private void validateStateTransition(WorkStatus from, WorkStatus to) {
+                // Lógica de validación de transiciones válidas
+                Map<String, List<String>> validTransitions = Map.of(
+                                "PENDIENTE", List.of("EN_PROGRESO", "CANCELADO"),
+                                "EN_PROGRESO", List.of("COMPLETADO", "CANCELADO"),
+                                "COMPLETADO", List.of());
+
+                if (!validTransitions.get(from.getName()).contains(to.getName())) {
+                        throw new IllegalStateException(
+                                        "Invalid state transition from " + from.getName() + " to " + to.getName());
+                }
         }
 }
