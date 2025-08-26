@@ -21,7 +21,7 @@ public interface WorkRepository extends JpaRepository<Work, Long> {
     @Query("SELECT w FROM Work w WHERE w.assignedEmployee.id = :employeeId ORDER BY w.createdAt DESC")
     Page<Work> findByAssignedEmployeeId(@Param("employeeId") Long employeeId, Pageable pageable);
 
-    @Query("SELECT w FROM Work w WHERE w.vehicle.ownerCui = :ownerCui ORDER BY w.createdAt DESC")
+    @Query("SELECT w FROM Work w WHERE w.vehicle.owner.cui = :ownerCui ORDER BY w.createdAt DESC")
     Page<Work> findByVehicleOwnerCui(@Param("ownerCui") String ownerCui, Pageable pageable);
 
     @Query("SELECT w FROM Work w WHERE w.workStatus.id = :statusId ORDER BY w.createdAt DESC")
