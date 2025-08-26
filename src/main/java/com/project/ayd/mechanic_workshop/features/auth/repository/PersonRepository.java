@@ -13,6 +13,10 @@ public interface PersonRepository extends JpaRepository<Person, String> {
 
     Optional<Person> findByNit(String nit);
 
+    default Optional<Person> findByCui(String cui) {
+        return findById(cui);
+    }
+
     boolean existsByEmail(String email);
 
     boolean existsByNit(String nit);

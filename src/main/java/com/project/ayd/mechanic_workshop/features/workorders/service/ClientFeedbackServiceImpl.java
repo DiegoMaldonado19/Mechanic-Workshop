@@ -34,9 +34,10 @@ public class ClientFeedbackServiceImpl implements ClientFeedbackService {
     @Transactional
     public ClientFeedbackResponse createFeedback(ClientFeedbackRequest request) {
         log.info("Creating feedback for work ID: {}", request.getWorkId());
-        
+
         Work work = workRepository.findByIdWithDetails(request.getWorkId())
-                .orElseThrow(() -> new IllegalArgumentException("Work order not found with ID: " + request.getWorkId()));
+                .orElseThrow(
+                        () -> new IllegalArgumentException("Work order not found with ID: " + request.getWorkId()));
 
         // Verificar que el trabajo esté completado
         if (!work.getWorkStatus().getId().equals(WorkOrderStatus.COMPLETED.getId())) {
@@ -48,7 +49,7 @@ public class ClientFeedbackServiceImpl implements ClientFeedbackService {
                 .orElseThrow(() -> new IllegalArgumentException("Client not found with CUI: " + currentUserCui));
 
         // Verificar que el cliente es el propietario del vehículo
-        if (!work.getVehicle().getOwnerCui().equals(currentUserCui)) {
+        if (!work.getVehicle().getOwner().getCui().equals(client.getCui())) {
             throw new IllegalStateException("You can only provide feedback for your own vehicle's work orders");
         }
 
@@ -162,8 +163,11 @@ public class ClientFeedbackServiceImpl implements ClientFeedbackService {
             return false;
         }
 
+        Person client = personRepository.findByCui(clientCui)
+                .orElseThrow(() -> new IllegalArgumentException("Client not found with CUI: " + clientCui));
+
         // Verificar que es el propietario del vehículo
-        if (!work.getVehicle().getOwnerCui().equals(clientCui)) {
+        if (!work.getVehicle().getOwner().getCui().equals(currentUser.getPerson().getCui())) {
             return false;
         }
 
@@ -175,7 +179,7 @@ public class ClientFeedbackServiceImpl implements ClientFeedbackService {
     @Transactional
     public void deleteFeedback(Long feedbackId) {
         log.info("Deleting feedback with ID: {}", feedbackId);
-        
+
         ClientFeedback feedback = clientFeedbackRepository.findById(feedbackId)
                 .orElseThrow(() -> new IllegalArgumentException("Feedback not found with ID: " + feedbackId));
 

@@ -29,6 +29,8 @@ public interface WorkOrderService {
 
     WorkOrderResponse approveWorkOrder(Long workOrderId);
 
+    WorkOrderResponse finishWithoutExecution(Long workOrderId, String reason);
+
     Page<WorkOrderResponse> getWorkOrdersByEmployee(Long employeeId, Pageable pageable);
 
     Page<WorkOrderResponse> getWorkOrdersByClient(String clientCui, Pageable pageable);

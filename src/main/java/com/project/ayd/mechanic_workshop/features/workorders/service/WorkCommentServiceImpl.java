@@ -45,7 +45,7 @@ public class WorkCommentServiceImpl implements WorkCommentService {
 
         // Verificar permisos: cliente puede comentar solo en sus vehículos
         if ("CLIENTE".equals(currentUser.getUserType().getName())) {
-            if (!work.getVehicle().getOwnerCui().equals(currentUser.getPerson().getCui())) {
+            if (!work.getVehicle().getOwner().getCui().equals(currentUser.getPerson().getCui())) {
                 throw new IllegalStateException("You can only comment on work orders for your own vehicles");
             }
         }
@@ -177,7 +177,7 @@ public class WorkCommentServiceImpl implements WorkCommentService {
         statistics.put("urgentPendingResponses", workCommentRepository.countUrgentPendingResponses());
 
         for (WorkComment.CommentType type : WorkComment.CommentType.values()) {
-            Long count = workCommentRepository.findByCommentTypeOrderByCreatedAtDesc(type).size();
+            Long count = (long) workCommentRepository.findByCommentTypeOrderByCreatedAtDesc(type).size();
             statistics.put(type.name().toLowerCase() + "Comments", count);
         }
 
