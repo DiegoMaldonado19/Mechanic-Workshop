@@ -6,13 +6,11 @@ import com.project.ayd.mechanic_workshop.features.inventory.dto.*;
 import com.project.ayd.mechanic_workshop.features.inventory.entity.*;
 import com.project.ayd.mechanic_workshop.features.inventory.enums.PurchaseOrderStatus;
 import com.project.ayd.mechanic_workshop.features.inventory.repository.*;
-import com.project.ayd.mechanic_workshop.features.users.dto.UserResponse;
-import com.project.ayd.mechanic_workshop.features.users.service.UserService;
-import com.project.ayd.mechanic_workshop.features.workorders.dto.PartCategoryResponse;
-import com.project.ayd.mechanic_workshop.features.workorders.dto.PartResponse;
 import com.project.ayd.mechanic_workshop.features.workorders.entity.Part;
 import com.project.ayd.mechanic_workshop.features.workorders.repository.PartRepository;
-import com.project.ayd.mechanic_workshop.features.workorders.service.PartService;
+import com.project.ayd.mechanic_workshop.features.workorders.dto.PartResponse;
+import com.project.ayd.mechanic_workshop.features.workorders.dto.PartCategoryResponse;
+import com.project.ayd.mechanic_workshop.features.users.dto.UserResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -23,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,16 +36,13 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         private final PartRepository partRepository;
         private final UserRepository userRepository;
         private final InventoryService inventoryService;
-        private final UserService userService;
-        private final PartService partService;
 
         @Override
         @Transactional
         public PurchaseOrderResponse createPurchaseOrder(PurchaseOrderRequest request) {
                 Supplier supplier = supplierRepository.findById(request.getSupplierId())
-                                .orElseThrow(
-                                                () -> new IllegalArgumentException("Supplier not found with ID: "
-                                                                + request.getSupplierId()));
+                                .orElseThrow(() -> new IllegalArgumentException(
+                                                "Supplier not found with ID: " + request.getSupplierId()));
 
                 PurchaseOrderStatusEntity pendingStatus = purchaseOrderStatusRepository
                                 .findByName(PurchaseOrderStatus.PENDIENTE.getDisplayName())
@@ -81,9 +75,8 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         @Transactional(readOnly = true)
         public PurchaseOrderResponse getPurchaseOrderById(Long purchaseOrderId) {
                 PurchaseOrder purchaseOrder = purchaseOrderRepository.findById(purchaseOrderId)
-                                .orElseThrow(
-                                                () -> new IllegalArgumentException("Purchase order not found with ID: "
-                                                                + purchaseOrderId));
+                                .orElseThrow(() -> new IllegalArgumentException(
+                                                "Purchase order not found with ID: " + purchaseOrderId));
                 return mapToPurchaseOrderResponse(purchaseOrder);
         }
 
@@ -120,15 +113,12 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         @Transactional
         public PurchaseOrderResponse updatePurchaseOrderStatus(Long purchaseOrderId, Long statusId) {
                 PurchaseOrder purchaseOrder = purchaseOrderRepository.findById(purchaseOrderId)
-                                .orElseThrow(
-                                                () -> new IllegalArgumentException("Purchase order not found with ID: "
-                                                                + purchaseOrderId));
+                                .orElseThrow(() -> new IllegalArgumentException(
+                                                "Purchase order not found with ID: " + purchaseOrderId));
 
                 PurchaseOrderStatusEntity status = purchaseOrderStatusRepository.findById(statusId)
-                                .orElseThrow(
-                                                () -> new IllegalArgumentException(
-                                                                "Purchase order status not found with ID: "
-                                                                                + statusId));
+                                .orElseThrow(() -> new IllegalArgumentException(
+                                                "Purchase order status not found with ID: " + statusId));
 
                 purchaseOrder.setStatus(status);
                 purchaseOrder = purchaseOrderRepository.save(purchaseOrder);
@@ -143,9 +133,8 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         public PurchaseOrderResponse receivePurchaseOrderItem(Long purchaseOrderId, Long itemId,
                         Integer quantityReceived) {
                 PurchaseOrder purchaseOrder = purchaseOrderRepository.findById(purchaseOrderId)
-                                .orElseThrow(
-                                                () -> new IllegalArgumentException("Purchase order not found with ID: "
-                                                                + purchaseOrderId));
+                                .orElseThrow(() -> new IllegalArgumentException(
+                                                "Purchase order not found with ID: " + purchaseOrderId));
 
                 PurchaseOrderItem item = purchaseOrder.getItems().stream()
                                 .filter(i -> i.getId().equals(itemId))
@@ -163,7 +152,6 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
                 item.setQuantityReceived(totalReceived);
                 purchaseOrderItemRepository.save(item);
 
-                // Update inventory stock
                 InventoryStockRequest stockRequest = InventoryStockRequest.builder()
                                 .partId(item.getPart().getId())
                                 .quantity(quantityReceived)
@@ -182,9 +170,8 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         @Transactional
         public PurchaseOrderResponse completePurchaseOrderDelivery(Long purchaseOrderId) {
                 PurchaseOrder purchaseOrder = purchaseOrderRepository.findById(purchaseOrderId)
-                                .orElseThrow(
-                                                () -> new IllegalArgumentException("Purchase order not found with ID: "
-                                                                + purchaseOrderId));
+                                .orElseThrow(() -> new IllegalArgumentException(
+                                                "Purchase order not found with ID: " + purchaseOrderId));
 
                 PurchaseOrderStatusEntity deliveredStatus = purchaseOrderStatusRepository
                                 .findByName(PurchaseOrderStatus.ENTREGADA.getDisplayName())
@@ -250,9 +237,8 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 
                 for (PurchaseOrderItemRequest itemRequest : itemRequests) {
                         Part part = partRepository.findById(itemRequest.getPartId())
-                                        .orElseThrow(
-                                                        () -> new IllegalArgumentException("Part not found with ID: "
-                                                                        + itemRequest.getPartId()));
+                                        .orElseThrow(() -> new IllegalArgumentException(
+                                                        "Part not found with ID: " + itemRequest.getPartId()));
 
                         BigDecimal totalPrice = itemRequest.getUnitPrice()
                                         .multiply(BigDecimal.valueOf(itemRequest.getQuantityOrdered()));
@@ -276,6 +262,8 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
                 return userRepository.findByUsername(username)
                                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
         }
+
+        // ===== MÉTODOS DE MAPEO =====
 
         private PurchaseOrderResponse mapToPurchaseOrderResponse(PurchaseOrder purchaseOrder) {
                 List<PurchaseOrderItemResponse> itemResponses = purchaseOrder.getItems()
@@ -311,7 +299,43 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
                                 .build();
         }
 
-        // Agregar estos métodos de mapeo local:
+        private SupplierResponse mapToSupplierResponse(Supplier supplier) {
+                PersonResponse personResponse = null;
+                if (supplier.getPerson() != null) {
+                        personResponse = PersonResponse.builder()
+                                        .cui(supplier.getPerson().getCui())
+                                        .nit(supplier.getPerson().getNit())
+                                        .firstName(supplier.getPerson().getFirstName())
+                                        .lastName(supplier.getPerson().getLastName())
+                                        .email(supplier.getPerson().getEmail())
+                                        .phone(supplier.getPerson().getPhone())
+                                        .birthDate(supplier.getPerson().getBirthDate())
+                                        .createdAt(supplier.getPerson().getCreatedAt())
+                                        .updatedAt(supplier.getPerson().getUpdatedAt())
+                                        .build();
+                }
+
+                return SupplierResponse.builder()
+                                .id(supplier.getId())
+                                .person(personResponse)
+                                .companyName(supplier.getCompanyName())
+                                .contactEmail(supplier.getContactEmail())
+                                .contactPhone(supplier.getContactPhone())
+                                .isActive(supplier.getIsActive())
+                                .createdAt(supplier.getCreatedAt())
+                                .updatedAt(supplier.getUpdatedAt())
+                                .build();
+        }
+
+        private PurchaseOrderStatusResponse mapToPurchaseOrderStatusResponse(PurchaseOrderStatusEntity status) {
+                return PurchaseOrderStatusResponse.builder()
+                                .id(status.getId())
+                                .name(status.getName())
+                                .description(status.getDescription())
+                                .createdAt(status.getCreatedAt())
+                                .build();
+        }
+
         private PartResponse mapToPartResponse(Part part) {
                 PartCategoryResponse categoryResponse = null;
                 if (part.getCategory() != null) {
