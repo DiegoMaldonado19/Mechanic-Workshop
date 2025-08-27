@@ -2,13 +2,13 @@ package com.project.ayd.mechanic_workshop.features.inventory.service;
 
 import com.project.ayd.mechanic_workshop.features.auth.entity.Person;
 import com.project.ayd.mechanic_workshop.features.auth.repository.PersonRepository;
+import com.project.ayd.mechanic_workshop.features.common.entity.AddressDetail;
+import com.project.ayd.mechanic_workshop.features.common.repository.AddressDetailRepository;
+import com.project.ayd.mechanic_workshop.features.inventory.dto.PersonResponse;
 import com.project.ayd.mechanic_workshop.features.inventory.dto.SupplierRequest;
 import com.project.ayd.mechanic_workshop.features.inventory.dto.SupplierResponse;
 import com.project.ayd.mechanic_workshop.features.inventory.entity.Supplier;
 import com.project.ayd.mechanic_workshop.features.inventory.repository.SupplierRepository;
-import com.project.ayd.mechanic_workshop.features.shared.entity.AddressDetail;
-import com.project.ayd.mechanic_workshop.features.shared.repository.AddressDetailRepository;
-import com.project.ayd.mechanic_workshop.features.users.dto.PersonResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -189,15 +189,16 @@ public class SupplierServiceImpl implements SupplierService {
             throw new IllegalArgumentException("Either person CUI or company name must be provided");
         }
 
-        if (request.getPersonCui() != null && 
-            !request.getPersonCui().equals(existingSupplier.getPerson()?.getCui()) && 
-            existsByPersonCui(request.getPersonCui())) {
-            throw new IllegalArgumentException("Supplier already exists for person with CUI: " + request.getPersonCui());
+        if (request.getPersonCui() != null &&
+                !request.getPersonCui().equals(existingSupplier.getPerson().getCui()) &&
+                existsByPersonCui(request.getPersonCui())) {
+            throw new IllegalArgumentException(
+                    "Supplier already exists for person with CUI: " + request.getPersonCui());
         }
 
-        if (request.getContactEmail() != null && 
-            !request.getContactEmail().equals(existingSupplier.getContactEmail()) && 
-            existsByContactEmail(request.getContactEmail())) {
+        if (request.getContactEmail() != null &&
+                !request.getContactEmail().equals(existingSupplier.getContactEmail()) &&
+                existsByContactEmail(request.getContactEmail())) {
             throw new IllegalArgumentException("Supplier already exists with email: " + request.getContactEmail());
         }
     }
