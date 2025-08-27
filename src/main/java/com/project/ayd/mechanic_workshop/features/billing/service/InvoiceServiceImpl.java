@@ -276,7 +276,7 @@ public class InvoiceServiceImpl implements InvoiceService {
                                 .workId(invoice.getWork().getId())
                                 .workDescription(invoice.getWork().getProblemDescription())
                                 .quotationId(invoice.getQuotation() != null ? invoice.getQuotation().getId() : null)
-                                .clientCui(invoice.getWork().getVehicle().getOwnerCui())
+                                .clientCui(invoice.getWork().getVehicle().getOwner().getCui())
                                 .clientName(invoice.getWork().getVehicle().getOwner().getFirstName() + " " +
                                                 invoice.getWork().getVehicle().getOwner().getLastName())
                                 .vehicleLicensePlate(invoice.getWork().getVehicle().getLicensePlate())

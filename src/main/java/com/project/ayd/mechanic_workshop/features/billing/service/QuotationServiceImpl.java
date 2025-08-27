@@ -55,10 +55,6 @@ public class QuotationServiceImpl implements QuotationService {
                 .build();
 
         quotation = quotationRepository.save(quotation);
-
-        // Publicar evento de cotización aprobada
-        publishQuotationApprovedEvent(quotation);
-
         return mapToQuotationResponse(quotation);
     }
 
@@ -134,6 +130,10 @@ public class QuotationServiceImpl implements QuotationService {
         quotation.setUpdatedAt(LocalDateTime.now());
 
         quotation = quotationRepository.save(quotation);
+
+        // Publicar evento de cotización aprobada
+        publishQuotationApprovedEvent(quotation);
+
         return mapToQuotationResponse(quotation);
     }
 
@@ -230,7 +230,7 @@ public class QuotationServiceImpl implements QuotationService {
                 .quotationId(quotation.getId())
                 .workId(quotation.getWork().getId())
                 .workDescription(quotation.getWork().getProblemDescription())
-                .clientCui(quotation.getWork().getVehicle().getOwnerCui())
+                .clientCui(quotation.getWork().getVehicle().getOwner().getCui())
                 .clientName(quotation.getWork().getVehicle().getOwner().getFirstName() + " " +
                         quotation.getWork().getVehicle().getOwner().getLastName())
                 .vehicleLicensePlate(quotation.getWork().getVehicle().getLicensePlate())

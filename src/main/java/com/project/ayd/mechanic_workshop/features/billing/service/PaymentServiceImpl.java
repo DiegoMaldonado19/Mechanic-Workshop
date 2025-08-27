@@ -198,7 +198,7 @@ public class PaymentServiceImpl implements PaymentService {
                                 .invoiceId(invoice.getId())
                                 .paymentAmount(payment.getAmount())
                                 .paymentMethodName(payment.getPaymentMethod().getName())
-                                .clientCui(invoice.getWork().getVehicle().getOwnerCui())
+                                .clientCui(invoice.getWork().getVehicle().getOwner().getCui())
                                 .clientName(invoice.getWork().getVehicle().getOwner().getFirstName() + " " +
                                                 invoice.getWork().getVehicle().getOwner().getLastName())
                                 .vehicleLicensePlate(invoice.getWork().getVehicle().getLicensePlate())
