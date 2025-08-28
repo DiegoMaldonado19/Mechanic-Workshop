@@ -195,8 +195,8 @@ public class ReportController {
     // Configuration endpoints
     @GetMapping("/types")
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'EMPLEADO')")
-    public ResponseEntity<List<Map<String, Object>>> getReportTypes() {
-        List<Map<String, Object>> types = Arrays.stream(ReportType.values())
+    public ResponseEntity<List<Map<String, String>>> getReportTypes() {
+        List<Map<String, String>> types = Arrays.stream(ReportType.values())
                 .map(type -> Map.of(
                         "value", type.name(),
                         "label", type.getDisplayName()))
@@ -206,8 +206,8 @@ public class ReportController {
 
     @GetMapping("/formats")
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'EMPLEADO')")
-    public ResponseEntity<List<Map<String, Object>>> getReportFormats() {
-        List<Map<String, Object>> formats = Arrays.stream(ReportFormat.values())
+    public ResponseEntity<List<Map<String, String>>> getReportFormats() {
+        List<Map<String, String>> formats = Arrays.stream(ReportFormat.values())
                 .map(format -> Map.of(
                         "value", format.name(),
                         "label", format.getDisplayName(),
@@ -219,8 +219,8 @@ public class ReportController {
 
     @GetMapping("/periods")
     @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'EMPLEADO')")
-    public ResponseEntity<List<Map<String, Object>>> getReportPeriods() {
-        List<Map<String, Object>> periods = Arrays.stream(ReportPeriod.values())
+    public ResponseEntity<List<Map<String, String>>> getReportPeriods() {
+        List<Map<String, String>> periods = Arrays.stream(ReportPeriod.values())
                 .map(period -> Map.of(
                         "value", period.name(),
                         "label", period.getDisplayName()))

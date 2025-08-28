@@ -24,6 +24,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.math.RoundingMode;
 
 @Component
 @Slf4j
@@ -118,7 +119,7 @@ public class PDFGenerator {
         document.add(new Paragraph("Total de Ingresos: $" + total.toString()).setFont(normalFont));
         document.add(new Paragraph("Número de Períodos: " + data.size()).setFont(normalFont));
         if (!data.isEmpty()) {
-            BigDecimal average = total.divide(new BigDecimal(data.size()), 2, BigDecimal.ROUND_HALF_UP);
+            BigDecimal average = total.divide(new BigDecimal(data.size()), 2, RoundingMode.HALF_UP);
             document.add(new Paragraph("Promedio por Período: $" + average.toString()).setFont(normalFont));
         }
 

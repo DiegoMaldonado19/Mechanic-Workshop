@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.math.RoundingMode;
 
 @Component
 @Slf4j
@@ -139,7 +140,7 @@ public class ExcelGenerator {
         periodCountRow.createCell(1).setCellValue(data.size());
 
         if (!data.isEmpty()) {
-            BigDecimal average = total.divide(new BigDecimal(data.size()), 2, BigDecimal.ROUND_HALF_UP);
+            BigDecimal average = total.divide(new BigDecimal(data.size()), 2, RoundingMode.HALF_UP);
             Row averageRow = sheet.createRow(rowIndex++);
             averageRow.createCell(0).setCellValue("Promedio por Período:");
             Cell averageCell = averageRow.createCell(1);
