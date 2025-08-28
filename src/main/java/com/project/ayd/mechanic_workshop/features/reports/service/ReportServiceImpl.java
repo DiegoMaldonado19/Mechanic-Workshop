@@ -4,10 +4,9 @@ import com.project.ayd.mechanic_workshop.features.reports.dto.*;
 import com.project.ayd.mechanic_workshop.features.reports.enums.ReportFormat;
 import com.project.ayd.mechanic_workshop.features.reports.enums.ReportType;
 import com.project.ayd.mechanic_workshop.features.reports.repository.ReportRepository;
-import com.project.ayd.mechanic_workshop.features.reports.utilss.ExcelGenerator;
-import com.project.ayd.mechanic_workshop.features.reports.utilss.PDFGenerator;
-import com.project.ayd.mechanic_workshop.features.reports.utilss.ReportGenerator;
-
+import com.project.ayd.mechanic_workshop.features.reports.utils.ExcelGenerator;
+import com.project.ayd.mechanic_workshop.features.reports.utils.PDFGenerator;
+import com.project.ayd.mechanic_workshop.features.reports.utils.ReportGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.FileSystemResource;
@@ -21,9 +20,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -115,7 +112,7 @@ public class ReportServiceImpl implements ReportService {
                     .reportType(request.getReportType())
                     .format(request.getFormat())
                     .fileName(fileName)
-                    .downloadUrl("/reports/download/" + reportId)
+                    .downloadUrl("/api/v1/reports/download/" + reportId)
                     .generatedAt(LocalDateTime.now())
                     .generatedBy(getCurrentUsername())
                     .fileSize(getFileSize(filePath))
@@ -188,7 +185,7 @@ public class ReportServiceImpl implements ReportService {
         List<Object[]> incomeData = reportRepository.getIncomeByMonth(startDate.toLocalDate(), endDate.toLocalDate());
 
         BigDecimal totalIncome = incomeData.stream()
-                .map(row -> (BigDecimal) row[1])
+                .map(row -> new BigDecimal(row[1].toString()))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         // Simulated expenses (en un sistema real, esto vendría de una tabla de gastos)
@@ -210,7 +207,7 @@ public class ReportServiceImpl implements ReportService {
         // Construir breakdown mensual
         List<FinancialReportResponse.MonthlyFinancial> monthlyBreakdown = new ArrayList<>();
         for (Object[] row : incomeData) {
-            BigDecimal monthIncome = (BigDecimal) row[1];
+            BigDecimal monthIncome = new BigDecimal(row[1].toString());
             BigDecimal monthExpenses = monthIncome.multiply(new BigDecimal("0.7"));
 
             monthlyBreakdown.add(FinancialReportResponse.MonthlyFinancial.builder()
@@ -255,9 +252,9 @@ public class ReportServiceImpl implements ReportService {
                     .employeeId(String.valueOf(row[1]))
                     .totalWorksAssigned(((Number) row[2]).longValue())
                     .completedWorks(((Number) row[3]).longValue())
-                    .averageWorkTime((BigDecimal) row[4])
+                    .averageWorkTime(row[4] != null ? new BigDecimal(row[4].toString()) : BigDecimal.ZERO)
                     .completionRate(completionRate)
-                    .totalRevenue((BigDecimal) row[5])
+                    .totalRevenue(row[5] != null ? new BigDecimal(row[5].toString()) : BigDecimal.ZERO)
                     .build());
         }
 
@@ -269,9 +266,9 @@ public class ReportServiceImpl implements ReportService {
             workTypeStats.add(OperationalReportResponse.WorkTypeStatistics.builder()
                     .serviceTypeName((String) row[0])
                     .totalWorks(((Number) row[1]).longValue())
-                    .averageCost((BigDecimal) row[2])
-                    .averageDuration((BigDecimal) row[3])
-                    .totalRevenue((BigDecimal) row[4])
+                    .averageCost(row[2] != null ? new BigDecimal(row[2].toString()) : BigDecimal.ZERO)
+                    .averageDuration(row[3] != null ? new BigDecimal(row[3].toString()) : BigDecimal.ZERO)
+                    .totalRevenue(row[4] != null ? new BigDecimal(row[4].toString()) : BigDecimal.ZERO)
                     .build());
         }
 
@@ -283,7 +280,7 @@ public class ReportServiceImpl implements ReportService {
             vehicleBrandStats.add(OperationalReportResponse.VehicleBrandStatistics.builder()
                     .brandName((String) row[0])
                     .totalWorks(((Number) row[1]).longValue())
-                    .averageCost((BigDecimal) row[2])
+                    .averageCost(row[2] != null ? new BigDecimal(row[2].toString()) : BigDecimal.ZERO)
                     .uniqueVehicles(((Number) row[3]).longValue())
                     .build());
         }
@@ -297,7 +294,7 @@ public class ReportServiceImpl implements ReportService {
                     .partName((String) row[0])
                     .partCategory((String) row[1])
                     .totalQuantityUsed(((Number) row[2]).longValue())
-                    .totalCost((BigDecimal) row[3])
+                    .totalCost(row[3] != null ? new BigDecimal(row[3].toString()) : BigDecimal.ZERO)
                     .worksUsedIn(((Number) row[4]).longValue())
                     .build());
         }
@@ -318,6 +315,7 @@ public class ReportServiceImpl implements ReportService {
                 .completedWorks(completedWorks)
                 .pendingWorks(totalWorks - completedWorks)
                 .cancelledWorks(0L) // Simplificado
+                .averageWorkDuration(BigDecimal.ZERO) // Calcular si es necesario
                 .workCompletionRate(totalWorks > 0
                         ? BigDecimal.valueOf(completedWorks)
                                 .divide(BigDecimal.valueOf(totalWorks), 4, RoundingMode.HALF_UP)
@@ -331,21 +329,25 @@ public class ReportServiceImpl implements ReportService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Object[]> getIncomeByWeek(LocalDateTime startDate, LocalDateTime endDate) {
         return reportRepository.getIncomeByMonth(startDate.toLocalDate(), endDate.toLocalDate()); // Simplificado
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Object[]> getPreventiveMaintenanceReport(LocalDateTime startDate, LocalDateTime endDate) {
-        return reportRepository.getServiceTypeStatistics(startDate, endDate);
+        return reportRepository.getPreventiveMaintenanceReport(startDate, endDate);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Object[]> getPartsByVehicleBrand(LocalDateTime startDate, LocalDateTime endDate) {
         return reportRepository.getPartsByVehicleBrand(startDate, endDate);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Object[]> getClientHistoryReport(LocalDateTime startDate, LocalDateTime endDate) {
         return reportRepository.getClientHistory(startDate, endDate);
     }
@@ -371,47 +373,83 @@ public class ReportServiceImpl implements ReportService {
     // Helper methods
     private void generateFinancialIncomeReport(String filePath, ReportFormat format,
             LocalDateTime startDate, LocalDateTime endDate) {
-        reportGenerator.generateFinancialIncomeReport(filePath, format, startDate, endDate);
+        try {
+            reportGenerator.generateFinancialIncomeReport(filePath, format, startDate, endDate);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to generate financial income report", e);
+        }
     }
 
     private void generateFinancialExpensesReport(String filePath, ReportFormat format,
             LocalDateTime startDate, LocalDateTime endDate) {
-        reportGenerator.generateFinancialExpensesReport(filePath, format, startDate, endDate);
+        try {
+            reportGenerator.generateFinancialExpensesReport(filePath, format, startDate, endDate);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to generate financial expenses report", e);
+        }
     }
 
     private void generateWorksByDateReport(String filePath, ReportFormat format,
             LocalDateTime startDate, LocalDateTime endDate) {
-        reportGenerator.generateWorksByDateReport(filePath, format, startDate, endDate);
+        try {
+            reportGenerator.generateWorksByDateReport(filePath, format, startDate, endDate);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to generate works by date report", e);
+        }
     }
 
     private void generateWorksByTypeReport(String filePath, ReportFormat format,
             LocalDateTime startDate, LocalDateTime endDate) {
-        reportGenerator.generateWorksByTypeReport(filePath, format, startDate, endDate);
+        try {
+            reportGenerator.generateWorksByTypeReport(filePath, format, startDate, endDate);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to generate works by type report", e);
+        }
     }
 
     private void generateWorksByEmployeeReport(String filePath, ReportFormat format,
             LocalDateTime startDate, LocalDateTime endDate) {
-        reportGenerator.generateWorksByEmployeeReport(filePath, format, startDate, endDate);
+        try {
+            reportGenerator.generateWorksByEmployeeReport(filePath, format, startDate, endDate);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to generate works by employee report", e);
+        }
     }
 
     private void generatePartsUsageReport(String filePath, ReportFormat format,
             LocalDateTime startDate, LocalDateTime endDate) {
-        reportGenerator.generatePartsUsageReport(filePath, format, startDate, endDate);
+        try {
+            reportGenerator.generatePartsUsageReport(filePath, format, startDate, endDate);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to generate parts usage report", e);
+        }
     }
 
     private void generatePartsByBrandReport(String filePath, ReportFormat format,
             LocalDateTime startDate, LocalDateTime endDate) {
-        reportGenerator.generatePartsByBrandReport(filePath, format, startDate, endDate);
+        try {
+            reportGenerator.generatePartsByBrandReport(filePath, format, startDate, endDate);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to generate parts by brand report", e);
+        }
     }
 
     private void generateClientHistoryReport(String filePath, ReportFormat format,
             LocalDateTime startDate, LocalDateTime endDate) {
-        reportGenerator.generateClientHistoryReport(filePath, format, startDate, endDate);
+        try {
+            reportGenerator.generateClientHistoryReport(filePath, format, startDate, endDate);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to generate client history report", e);
+        }
     }
 
     private void generatePreventiveMaintenanceReport(String filePath, ReportFormat format,
             LocalDateTime startDate, LocalDateTime endDate) {
-        reportGenerator.generatePreventiveMaintenanceReport(filePath, format, startDate, endDate);
+        try {
+            reportGenerator.generatePreventiveMaintenanceReport(filePath, format, startDate, endDate);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to generate preventive maintenance report", e);
+        }
     }
 
     private String generateReportId(ReportType type, ReportFormat format) {
