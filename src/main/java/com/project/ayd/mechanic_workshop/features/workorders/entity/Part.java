@@ -5,8 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -23,11 +21,8 @@ public class Part {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name", nullable = false, length = 200)
+    @Column(name = "name", length = 200, nullable = false)
     private String name;
-
-    @Column(name = "part_number", unique = true, length = 100)
-    private String partNumber;
 
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
@@ -39,19 +34,15 @@ public class Part {
     @Column(name = "unit_price", nullable = false, precision = 10, scale = 2)
     private BigDecimal unitPrice;
 
-    @Column(name = "minimum_stock", nullable = false)
+    @Column(name = "minimum_stock")
     @Builder.Default
     private Integer minimumStock = 0;
 
-    @Column(name = "is_active")
+    @Column(name = "created_at")
     @Builder.Default
-    private Boolean isActive = true;
+    private LocalDateTime createdAt = LocalDateTime.now();
 
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    @Builder.Default
+    private LocalDateTime updatedAt = LocalDateTime.now();
 }

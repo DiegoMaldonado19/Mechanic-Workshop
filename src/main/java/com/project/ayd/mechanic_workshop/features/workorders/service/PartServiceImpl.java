@@ -116,12 +116,10 @@ public class PartServiceImpl implements PartService {
         return PartResponse.builder()
                 .id(part.getId())
                 .name(part.getName())
-                .partNumber(part.getPartNumber())
                 .description(part.getDescription())
                 .category(categoryResponse)
                 .unitPrice(part.getUnitPrice())
                 .minimumStock(part.getMinimumStock())
-                .isActive(part.getIsActive())
                 .createdAt(part.getCreatedAt())
                 .updatedAt(part.getUpdatedAt())
                 .build();
