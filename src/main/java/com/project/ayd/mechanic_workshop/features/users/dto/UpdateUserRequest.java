@@ -25,6 +25,8 @@ public class UpdateUserRequest {
     @Pattern(regexp = "^[0-9+\\-\\s()]*$", message = "Phone number format is invalid")
     private String phone;
 
+    private Long addressDetailId;
+
     private LocalDate birthDate;
 
     private Long genderId;
