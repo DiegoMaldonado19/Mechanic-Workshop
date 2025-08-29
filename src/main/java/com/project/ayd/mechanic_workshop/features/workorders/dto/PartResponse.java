@@ -16,7 +16,6 @@ public class PartResponse {
 
     private Long id;
     private String name;
-    private String partNumber;
     private String description;
     private PartCategoryResponse category;
     private BigDecimal unitPrice;

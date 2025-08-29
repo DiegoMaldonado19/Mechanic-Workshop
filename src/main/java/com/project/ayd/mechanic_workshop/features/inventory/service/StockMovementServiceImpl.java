@@ -3,8 +3,8 @@ package com.project.ayd.mechanic_workshop.features.inventory.service;
 import com.project.ayd.mechanic_workshop.features.auth.entity.User;
 import com.project.ayd.mechanic_workshop.features.auth.repository.UserRepository;
 import com.project.ayd.mechanic_workshop.features.inventory.dto.*;
-import com.project.ayd.mechanic_workshop.features.inventory.entity.MovementTypeEntity;
-import com.project.ayd.mechanic_workshop.features.inventory.entity.ReferenceTypeEntity;
+import com.project.ayd.mechanic_workshop.features.inventory.entity.MovementType;
+import com.project.ayd.mechanic_workshop.features.inventory.entity.ReferenceType;
 import com.project.ayd.mechanic_workshop.features.inventory.entity.StockMovement;
 import com.project.ayd.mechanic_workshop.features.inventory.repository.MovementTypeRepository;
 import com.project.ayd.mechanic_workshop.features.inventory.repository.ReferenceTypeRepository;
@@ -43,11 +43,11 @@ public class StockMovementServiceImpl implements StockMovementService {
                                 .orElseThrow(() -> new IllegalArgumentException(
                                                 "Part not found with ID: " + request.getPartId()));
 
-                MovementTypeEntity movementType = movementTypeRepository.findById(request.getMovementTypeId())
+                MovementType movementType = movementTypeRepository.findById(request.getMovementTypeId())
                                 .orElseThrow(() -> new IllegalArgumentException(
                                                 "Movement type not found with ID: " + request.getMovementTypeId()));
 
-                ReferenceTypeEntity referenceType = null;
+                ReferenceType referenceType = null;
                 if (request.getReferenceTypeId() != null) {
                         referenceType = referenceTypeRepository.findById(request.getReferenceTypeId())
                                         .orElseThrow(() -> new IllegalArgumentException(
@@ -160,7 +160,7 @@ public class StockMovementServiceImpl implements StockMovementService {
                                 .build();
         }
 
-        private MovementTypeResponse mapToMovementTypeResponse(MovementTypeEntity movementType) {
+        private MovementTypeResponse mapToMovementTypeResponse(MovementType movementType) {
                 return MovementTypeResponse.builder()
                                 .id(movementType.getId())
                                 .name(movementType.getName())
@@ -169,7 +169,7 @@ public class StockMovementServiceImpl implements StockMovementService {
                                 .build();
         }
 
-        private ReferenceTypeResponse mapToReferenceTypeResponse(ReferenceTypeEntity referenceType) {
+        private ReferenceTypeResponse mapToReferenceTypeResponse(ReferenceType referenceType) {
                 return ReferenceTypeResponse.builder()
                                 .id(referenceType.getId())
                                 .name(referenceType.getName())

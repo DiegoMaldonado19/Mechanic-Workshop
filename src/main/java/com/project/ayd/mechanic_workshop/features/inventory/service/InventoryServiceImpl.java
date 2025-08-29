@@ -4,8 +4,8 @@ import com.project.ayd.mechanic_workshop.features.auth.entity.User;
 import com.project.ayd.mechanic_workshop.features.auth.repository.UserRepository;
 import com.project.ayd.mechanic_workshop.features.inventory.dto.*;
 import com.project.ayd.mechanic_workshop.features.inventory.entity.InventoryStock;
-import com.project.ayd.mechanic_workshop.features.inventory.entity.MovementTypeEntity;
-import com.project.ayd.mechanic_workshop.features.inventory.entity.ReferenceTypeEntity;
+import com.project.ayd.mechanic_workshop.features.inventory.entity.MovementType;
+import com.project.ayd.mechanic_workshop.features.inventory.entity.ReferenceType;
 import com.project.ayd.mechanic_workshop.features.inventory.entity.StockMovement;
 import com.project.ayd.mechanic_workshop.features.inventory.repository.InventoryStockRepository;
 import com.project.ayd.mechanic_workshop.features.inventory.repository.MovementTypeRepository;
@@ -234,11 +234,11 @@ public class InventoryServiceImpl implements InventoryService {
                 Part part = partRepository.findById(partId)
                                 .orElseThrow(() -> new IllegalArgumentException("Part not found with ID: " + partId));
 
-                MovementTypeEntity movementType = movementTypeRepository.findByName(movementTypeName)
+                MovementType movementType = movementTypeRepository.findByName(movementTypeName)
                                 .orElseThrow(() -> new IllegalArgumentException(
                                                 "Movement type not found: " + movementTypeName));
 
-                ReferenceTypeEntity referenceType = referenceTypeRepository.findByName(referenceTypeName)
+                ReferenceType referenceType = referenceTypeRepository.findByName(referenceTypeName)
                                 .orElseThrow(() -> new IllegalArgumentException(
                                                 "Reference type not found: " + referenceTypeName));
 

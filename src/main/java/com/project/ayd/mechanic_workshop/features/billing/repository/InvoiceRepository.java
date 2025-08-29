@@ -16,36 +16,36 @@ import java.util.Optional;
 @Repository
 public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
 
-    Optional<Invoice> findByWorkId(Long workId);
+        Optional<Invoice> findByWorkId(Long workId);
 
-    @Query("SELECT i FROM Invoice i WHERE i.work.vehicle.ownerCui = :clientCui")
-    Page<Invoice> findByClientCui(@Param("clientCui") String clientCui, Pageable pageable);
+        @Query("SELECT i FROM Invoice i WHERE i.work.vehicle.owner.cui = :clientCui")
+        Page<Invoice> findByClientCui(@Param("clientCui") String clientCui, Pageable pageable);
 
-    @Query("SELECT i FROM Invoice i WHERE i.paymentStatus.id = :statusId")
-    Page<Invoice> findByPaymentStatusId(@Param("statusId") Long statusId, Pageable pageable);
+        @Query("SELECT i FROM Invoice i WHERE i.paymentStatus.id = :statusId")
+        Page<Invoice> findByPaymentStatusId(@Param("statusId") Long statusId, Pageable pageable);
 
-    @Query("SELECT i FROM Invoice i WHERE i.paymentStatus.name = :statusName")
-    Page<Invoice> findByPaymentStatusName(@Param("statusName") String statusName, Pageable pageable);
+        @Query("SELECT i FROM Invoice i WHERE i.paymentStatus.name = :statusName")
+        Page<Invoice> findByPaymentStatusName(@Param("statusName") String statusName, Pageable pageable);
 
-    @Query("SELECT i FROM Invoice i WHERE i.dueDate < :date AND i.paymentStatus.name != 'Pagado'")
-    List<Invoice> findOverdueInvoices(@Param("date") LocalDate date);
+        @Query("SELECT i FROM Invoice i WHERE i.dueDate < :date AND i.paymentStatus.name != 'Pagado'")
+        List<Invoice> findOverdueInvoices(@Param("date") LocalDate date);
 
-    @Query("SELECT i FROM Invoice i WHERE i.issuedDate BETWEEN :startDate AND :endDate")
-    Page<Invoice> findByIssuedDateRange(@Param("startDate") LocalDate startDate,
-            @Param("endDate") LocalDate endDate,
-            Pageable pageable);
+        @Query("SELECT i FROM Invoice i WHERE i.issuedDate BETWEEN :startDate AND :endDate")
+        Page<Invoice> findByIssuedDateRange(@Param("startDate") LocalDate startDate,
+                        @Param("endDate") LocalDate endDate,
+                        Pageable pageable);
 
-    @Query("SELECT i FROM Invoice i WHERE i.createdBy.id = :userId")
-    Page<Invoice> findByCreatedById(@Param("userId") Long userId, Pageable pageable);
+        @Query("SELECT i FROM Invoice i WHERE i.createdBy.id = :userId")
+        Page<Invoice> findByCreatedById(@Param("userId") Long userId, Pageable pageable);
 
-    @Query("SELECT SUM(i.totalAmount) FROM Invoice i WHERE i.paymentStatus.name = 'Pagado' AND i.issuedDate BETWEEN :startDate AND :endDate")
-    BigDecimal sumPaidInvoicesByDateRange(@Param("startDate") LocalDate startDate,
-            @Param("endDate") LocalDate endDate);
+        @Query("SELECT SUM(i.totalAmount) FROM Invoice i WHERE i.paymentStatus.name = 'Pagado' AND i.issuedDate BETWEEN :startDate AND :endDate")
+        BigDecimal sumPaidInvoicesByDateRange(@Param("startDate") LocalDate startDate,
+                        @Param("endDate") LocalDate endDate);
 
-    @Query("SELECT SUM(i.totalAmount) FROM Invoice i WHERE i.paymentStatus.name = 'Pendiente' AND i.dueDate < :date")
-    BigDecimal sumOverdueInvoicesAmount(@Param("date") LocalDate date);
+        @Query("SELECT SUM(i.totalAmount) FROM Invoice i WHERE i.paymentStatus.name = 'Pendiente' AND i.dueDate < :date")
+        BigDecimal sumOverdueInvoicesAmount(@Param("date") LocalDate date);
 
-    @Query("SELECT COUNT(i) FROM Invoice i WHERE i.issuedDate BETWEEN :startDate AND :endDate")
-    Long countInvoicesByDateRange(@Param("startDate") LocalDate startDate,
-            @Param("endDate") LocalDate endDate);
+        @Query("SELECT COUNT(i) FROM Invoice i WHERE i.issuedDate BETWEEN :startDate AND :endDate")
+        Long countInvoicesByDateRange(@Param("startDate") LocalDate startDate,
+                        @Param("endDate") LocalDate endDate);
 }

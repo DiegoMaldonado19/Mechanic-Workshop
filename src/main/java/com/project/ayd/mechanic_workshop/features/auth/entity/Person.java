@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import com.project.ayd.mechanic_workshop.features.common.entity.AddressDetail;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -39,8 +40,9 @@ public class Person {
     @Column(name = "phone", length = 20)
     private String phone;
 
-    @Column(name = "address_detail_id")
-    private Long addressDetailId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "address_detail_id")
+    private AddressDetail addressDetail;
 
     @Column(name = "birth_date")
     private LocalDate birthDate;
