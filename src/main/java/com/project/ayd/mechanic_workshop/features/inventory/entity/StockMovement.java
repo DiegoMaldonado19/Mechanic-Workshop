@@ -28,14 +28,14 @@ public class StockMovement {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "movement_type_id", nullable = false)
-    private MovementTypeEntity movementType;
+    private MovementType movementType;
 
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reference_type_id")
-    private ReferenceTypeEntity referenceType;
+    private ReferenceType referenceType;
 
     @Column(name = "reference_id")
     private Long referenceId;

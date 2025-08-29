@@ -9,12 +9,12 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "reference_type")
+@Table(name = "movement_type")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReferenceTypeEntity {
+public class MovementType {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
