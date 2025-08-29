@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Quotation {
+public class WorkOrderQuotation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

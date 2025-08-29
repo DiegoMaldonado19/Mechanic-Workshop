@@ -2,6 +2,7 @@ package com.project.ayd.mechanic_workshop.features.workorders.service;
 
 import com.project.ayd.mechanic_workshop.features.auth.entity.User;
 import com.project.ayd.mechanic_workshop.features.auth.repository.UserRepository;
+import com.project.ayd.mechanic_workshop.features.users.dto.UserResponse;
 import com.project.ayd.mechanic_workshop.features.vehicles.entity.Vehicle;
 import com.project.ayd.mechanic_workshop.features.vehicles.repository.VehicleRepository;
 import com.project.ayd.mechanic_workshop.features.workorders.dto.*;
@@ -484,7 +485,7 @@ public class WorkOrderServiceImpl implements WorkOrderService {
 
                 User currentUser = getCurrentUser();
 
-                Quotation quotation = Quotation.builder()
+                WorkOrderQuotation quotation = WorkOrderQuotation.builder()
                                 .work(work)
                                 .totalPartsCost(request.getTotalPartsCost())
                                 .totalLaborCost(request.getTotalLaborCost())
@@ -513,7 +514,7 @@ public class WorkOrderServiceImpl implements WorkOrderService {
         public QuotationResponse approveQuotation(Long quotationId) {
                 log.info("Approving quotation with ID: {}", quotationId);
 
-                Quotation quotation = workOrderQuotationRepository.findById(quotationId)
+                WorkOrderQuotation quotation = workOrderQuotationRepository.findById(quotationId)
                                 .orElseThrow(() -> new IllegalArgumentException(
                                                 "Quotation not found with ID: " + quotationId));
 
@@ -548,6 +549,25 @@ public class WorkOrderServiceImpl implements WorkOrderService {
                 String username = SecurityContextHolder.getContext().getAuthentication().getName();
                 return userRepository.findByUsername(username)
                                 .orElseThrow(() -> new IllegalStateException("Current user not found"));
+        }
+
+        private UserResponse mapToUserResponse(User user) {
+                return UserResponse.builder()
+                                .id(user.getId())
+                                .cui(user.getPerson().getCui())
+                                .nit(user.getPerson().getNit())
+                                .firstName(user.getPerson().getFirstName())
+                                .lastName(user.getPerson().getLastName())
+                                .email(user.getPerson().getEmail())
+                                .phone(user.getPerson().getPhone())
+                                .username(user.getUsername())
+                                .userType(user.getUserType().getName())
+                                .gender(user.getPerson().getGender() != null ? user.getPerson().getGender().getName()
+                                                : null)
+                                .isActive(user.getIsActive())
+                                .lastLogin(user.getLastLogin())
+                                .createdAt(user.getCreatedAt())
+                                .build();
         }
 
         private WorkOrderResponse mapToWorkOrderResponse(Work work) {
@@ -602,7 +622,7 @@ public class WorkOrderServiceImpl implements WorkOrderService {
                                 .build();
         }
 
-        private QuotationResponse mapToQuotationResponse(Quotation quotation) {
+        private QuotationResponse mapToQuotationResponse(WorkOrderQuotation quotation) {
                 return QuotationResponse.builder()
                                 .id(quotation.getId())
                                 .workId(quotation.getWork().getId())
@@ -612,6 +632,7 @@ public class WorkOrderServiceImpl implements WorkOrderService {
                                 .validUntil(quotation.getValidUntil())
                                 .clientApproved(quotation.getClientApproved())
                                 .approvedAt(quotation.getApprovedAt())
+                                .createdBy(mapToUserResponse(quotation.getCreatedBy()))
                                 .createdAt(quotation.getCreatedAt())
                                 .updatedAt(quotation.getUpdatedAt())
                                 .build();

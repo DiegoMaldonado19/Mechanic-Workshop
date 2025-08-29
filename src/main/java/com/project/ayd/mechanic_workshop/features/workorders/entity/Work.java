@@ -93,7 +93,7 @@ public class Work {
     private List<WorkPart> workParts;
 
     @OneToMany(mappedBy = "work", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Quotation> quotations;
+    private List<WorkOrderQuotation> quotations;
 
     @OneToMany(mappedBy = "work", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ClientFeedback> clientFeedbacks;
