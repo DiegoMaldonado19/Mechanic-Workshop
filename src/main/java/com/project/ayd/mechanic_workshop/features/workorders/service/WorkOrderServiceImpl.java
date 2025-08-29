@@ -30,7 +30,7 @@ public class WorkOrderServiceImpl implements WorkOrderService {
         private final WorkRepository workRepository;
         private final WorkProgressRepository workProgressRepository;
         private final WorkPartRepository workPartRepository;
-        private final QuotationRepository quotationRepository;
+        private final WorkOrderQuotationRepository workOrderQuotationRepository;
         private final ServiceTypeRepository serviceTypeRepository;
         private final WorkStatusRepository workStatusRepository;
         private final PartRepository partRepository;
@@ -493,7 +493,7 @@ public class WorkOrderServiceImpl implements WorkOrderService {
                                 .createdBy(currentUser)
                                 .build();
 
-                quotation = quotationRepository.save(quotation);
+                quotation = workOrderQuotationRepository.save(quotation);
                 log.info("Quotation created successfully");
 
                 return mapToQuotationResponse(quotation);
@@ -502,7 +502,7 @@ public class WorkOrderServiceImpl implements WorkOrderService {
         @Override
         @Transactional(readOnly = true)
         public List<QuotationResponse> getQuotationsByWorkOrder(Long workOrderId) {
-                return quotationRepository.findByWorkIdOrderByCreatedAtDesc(workOrderId)
+                return workOrderQuotationRepository.findByWorkIdOrderByCreatedAtDesc(workOrderId)
                                 .stream()
                                 .map(this::mapToQuotationResponse)
                                 .toList();
@@ -513,14 +513,14 @@ public class WorkOrderServiceImpl implements WorkOrderService {
         public QuotationResponse approveQuotation(Long quotationId) {
                 log.info("Approving quotation with ID: {}", quotationId);
 
-                Quotation quotation = quotationRepository.findById(quotationId)
+                Quotation quotation = workOrderQuotationRepository.findById(quotationId)
                                 .orElseThrow(() -> new IllegalArgumentException(
                                                 "Quotation not found with ID: " + quotationId));
 
                 quotation.setClientApproved(true);
                 quotation.setApprovedAt(LocalDateTime.now());
 
-                quotation = quotationRepository.save(quotation);
+                quotation = workOrderQuotationRepository.save(quotation);
                 log.info("Quotation approved successfully");
 
                 return mapToQuotationResponse(quotation);
