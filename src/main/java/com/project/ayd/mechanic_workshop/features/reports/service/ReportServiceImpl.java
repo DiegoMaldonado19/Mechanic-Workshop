@@ -76,47 +76,48 @@ public class ReportServiceImpl implements ReportService {
         String reportId = generateReportId(request.getReportType(), request.getFormat());
         String fileName = generateFileName(request.getReportType(), request.getFormat(), startDate, endDate);
         String filePath = REPORTS_DIR + fileName;
+        String reportType = request.getReportType().toString();
 
         try {
             // Generar contenido del reporte según el tipo
-            switch (request.getReportType()) {
-                case FINANCIAL_INCOME:
+            switch (reportType) {
+                case "FINANCIAL_INCOME":
                     generateFinancialIncomeReport(filePath, request.getFormat(), startDate, endDate);
                     break;
-                case FINANCIAL_EXPENSES:
+                case "FINANCIAL_EXPENSES":
                     generateFinancialExpensesReport(filePath, request.getFormat(), startDate, endDate);
                     break;
-                case WORK_BY_DATE:
+                case "WORK_BY_DATE":
                     generateWorksByDateReport(filePath, request.getFormat(), startDate, endDate);
                     break;
-                case WORK_BY_TYPE:
+                case "WORK_BY_TYPE":
                     generateWorksByTypeReport(filePath, request.getFormat(), startDate, endDate);
                     break;
-                case WORK_BY_EMPLOYEE:
+                case "WORK_BY_EMPLOYEE":
                     generateWorksByEmployeeReport(filePath, request.getFormat(), startDate, endDate);
                     break;
-                case PARTS_USAGE:
+                case "PARTS_USAGE":
                     generatePartsUsageReport(filePath, request.getFormat(), startDate, endDate);
                     break;
-                case PARTS_BY_BRAND:
+                case "PARTS_BY_BRAND":
                     generatePartsByBrandReport(filePath, request.getFormat(), startDate, endDate);
                     break;
-                case CLIENT_HISTORY:
+                case "CLIENT_HISTORY":
                     generateClientHistoryReport(filePath, request.getFormat(), startDate, endDate);
                     break;
-                case PREVENTIVE_MAINTENANCE:
+                case "PREVENTIVE_MAINTENANCE":
                     generatePreventiveMaintenanceReport(filePath, request.getFormat(), startDate, endDate);
                     break;
-                case CORRECTIVE_MAINTENANCE:
+                case "CORRECTIVE_MAINTENANCE":
                     generateCorrectiveMaintenanceReport(filePath, request.getFormat(), startDate, endDate);
                     break;
-                case PAYMENT_STATUS:
+                case "PAYMENT_STATUS":
                     generatePaymentStatusReport(filePath, request.getFormat(), startDate, endDate);
                     break;
-                case INVENTORY_STOCK:
+                case "INVENTORY_STOCK":
                     generateInventoryStockReport(filePath, request.getFormat(), startDate, endDate);
                     break;
-                case VEHICLE_BEHAVIOR:
+                case "VEHICLE_BEHAVIOR":
                     generateVehicleBehaviorReport(filePath, request.getFormat(), startDate, endDate);
                     break;
                 default:
@@ -1073,5 +1074,100 @@ public class ReportServiceImpl implements ReportService {
                 reportType.name().toLowerCase(),
                 dateRange,
                 format.getFileExtension());
+    }
+
+    @Override
+    public List<ReportFileInfo> getAvailableReports() {
+        List<ReportFileInfo> reports = new ArrayList<>();
+        LocalDateTime now = LocalDateTime.now();
+
+        for (Map.Entry<String, ReportResponse> entry : reportCache.entrySet()) {
+            ReportResponse report = entry.getValue();
+            String filePath = reportPathCache.get(entry.getKey());
+
+            if (filePath != null) {
+                File file = new File(filePath);
+                if (file.exists()) {
+                    reports.add(ReportFileInfo.builder()
+                            .reportId(report.getReportId())
+                            .fileName(report.getFileName())
+                            .reportType(report.getReportType())
+                            .format(report.getFormat())
+                            .fileSize(report.getFileSize())
+                            .generatedAt(report.getGeneratedAt())
+                            .expiresAt(report.getExpiresAt())
+                            .generatedBy(report.getGeneratedBy())
+                            .status(report.getStatus())
+                            .downloadUrl("/api/v1/reports/download/" + report.getReportId())
+                            .isExpired(report.getExpiresAt().isBefore(now))
+                            .fileSizeFormatted(formatFileSize(report.getFileSize()))
+                            .reportTypeDisplayName(report.getReportType().getDisplayName())
+                            .formatDisplayName(report.getFormat().getDisplayName())
+                            .build());
+                }
+            }
+        }
+
+        // Ordenar por fecha de generación (más recientes primero)
+        reports.sort((r1, r2) -> r2.getGeneratedAt().compareTo(r1.getGeneratedAt()));
+
+        return reports;
+    }
+
+    @Override
+    public boolean deleteReport(String reportId) {
+        try {
+            String filePath = reportPathCache.remove(reportId);
+            ReportResponse report = reportCache.remove(reportId);
+
+            if (filePath != null) {
+                Files.deleteIfExists(Paths.get(filePath));
+            }
+
+            log.info("Deleted report: {}", reportId);
+            return true;
+        } catch (Exception e) {
+            log.error("Error deleting report: {}", reportId, e);
+            return false;
+        }
+    }
+
+    @Override
+    public int cleanupExpiredReports() {
+        LocalDateTime now = LocalDateTime.now();
+        List<String> expiredReportIds = new ArrayList<>();
+
+        for (Map.Entry<String, ReportResponse> entry : reportCache.entrySet()) {
+            ReportResponse report = entry.getValue();
+            if (report.getExpiresAt().isBefore(now)) {
+                expiredReportIds.add(entry.getKey());
+            }
+        }
+
+        int deletedCount = 0;
+        for (String reportId : expiredReportIds) {
+            if (deleteReport(reportId)) {
+                deletedCount++;
+            }
+        }
+
+        log.info("Cleanup completed. Deleted {} expired reports", deletedCount);
+        return deletedCount;
+    }
+
+    private String formatFileSize(Long bytes) {
+        if (bytes == null || bytes == 0)
+            return "0 B";
+
+        String[] units = { "B", "KB", "MB", "GB", "TB" };
+        int unitIndex = 0;
+        double size = bytes;
+
+        while (size >= 1024 && unitIndex < units.length - 1) {
+            size /= 1024;
+            unitIndex++;
+        }
+
+        return String.format("%.1f %s", size, units[unitIndex]);
     }
 }

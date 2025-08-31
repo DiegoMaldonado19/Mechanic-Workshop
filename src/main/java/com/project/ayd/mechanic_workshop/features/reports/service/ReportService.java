@@ -4,6 +4,7 @@ import com.project.ayd.mechanic_workshop.features.reports.dto.ReportRequest;
 import com.project.ayd.mechanic_workshop.features.reports.dto.ReportResponse;
 import com.project.ayd.mechanic_workshop.features.reports.dto.FinancialReportResponse;
 import com.project.ayd.mechanic_workshop.features.reports.dto.OperationalReportResponse;
+import com.project.ayd.mechanic_workshop.features.reports.dto.ReportFileInfo;
 import com.project.ayd.mechanic_workshop.features.reports.enums.ReportType;
 import org.springframework.core.io.Resource;
 
@@ -100,4 +101,11 @@ public interface ReportService {
     // ================================
 
     List<Object[]> getTopPerformingMechanics(LocalDateTime startDate, LocalDateTime endDate, int limit);
+
+    List<ReportFileInfo> getAvailableReports();
+
+    boolean deleteReport(String reportId);
+
+    int cleanupExpiredReports();
+
 }

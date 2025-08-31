@@ -8,6 +8,8 @@ import com.project.ayd.mechanic_workshop.features.reports.service.DashboardServi
 import com.project.ayd.mechanic_workshop.features.reports.service.ReportService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.core.io.Resource;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
@@ -27,6 +29,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/reports")
 @RequiredArgsConstructor
+@Slf4j
 @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'EMPLEADO')")
 public class ReportController {
 
@@ -267,14 +270,6 @@ public class ReportController {
         return ResponseEntity.ok(data);
     }
 
-    // Admin maintenance endpoints
-    @DeleteMapping("/cleanup")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
-    public ResponseEntity<Map<String, String>> cleanupExpiredReports() {
-        reportService.deleteExpiredReports();
-        return ResponseEntity.ok(Map.of("message", "Expired reports cleaned up successfully"));
-    }
-
     // Helper methods
     private String generateExportFilename(ReportType reportType, ReportFormat format) {
         return String.format("%s_%s%s",
@@ -513,6 +508,50 @@ public class ReportController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Failed to generate bulk reports"));
+        }
+    }
+
+    @GetMapping("/available")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'EMPLEADO')")
+    public ResponseEntity<List<ReportFileInfo>> getAvailableReports() {
+        try {
+            List<ReportFileInfo> availableReports = reportService.getAvailableReports();
+            return ResponseEntity.ok(availableReports);
+        } catch (Exception e) {
+            log.error("Error getting available reports", e);
+            return ResponseEntity.ok(new ArrayList<>());
+        }
+    }
+
+    @DeleteMapping("/delete/{reportId}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<Map<String, String>> deleteReport(@PathVariable String reportId) {
+        try {
+            boolean deleted = reportService.deleteReport(reportId);
+            if (deleted) {
+                return ResponseEntity.ok(Map.of("message", "Reporte eliminado exitosamente"));
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            log.error("Error deleting report: {}", reportId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error al eliminar el reporte"));
+        }
+    }
+
+    @PostMapping("/cleanup")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<Map<String, Object>> cleanupExpiredReports() {
+        try {
+            int deletedCount = reportService.cleanupExpiredReports();
+            return ResponseEntity.ok(Map.of(
+                    "message", "Limpieza completada",
+                    "deletedReports", deletedCount));
+        } catch (Exception e) {
+            log.error("Error during cleanup", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error durante la limpieza"));
         }
     }
 }
