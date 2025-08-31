@@ -481,7 +481,7 @@ BEGIN
         INSERT INTO stock_movement (part_id, movement_type_id, quantity, reference_type_id, reference_id, created_by)
         SELECT NEW.part_id, mt.id, -(NEW.quantity_used - OLD.quantity_used), rt.id, NEW.work_id, NEW.requested_by
         FROM movement_type mt, reference_type rt
-        WHERE mt.name = 'OUT' AND rt.name = 'WORK';
+        WHERE mt.name = 'Salida' AND rt.name = 'Trabajo';
     END IF;
     
     RETURN NEW;
@@ -576,6 +576,64 @@ BEGIN
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+-- Trigger to update inventory stock when stock movements are inserted
+CREATE OR REPLACE FUNCTION update_inventory_from_stock_movement()
+RETURNS TRIGGER AS $$
+DECLARE
+    movement_name VARCHAR(100);
+BEGIN
+    -- Get movement type name
+    SELECT name INTO movement_name 
+    FROM movement_type 
+    WHERE id = NEW.movement_type_id;
+    
+    -- Update inventory stock based on movement type
+    IF movement_name = 'Entrada' THEN
+        -- Add quantity for entries
+        UPDATE inventory_stock 
+        SET quantity_available = quantity_available + NEW.quantity,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE part_id = NEW.part_id;
+        
+    ELSIF movement_name = 'Salida' THEN
+        -- Subtract quantity for exits
+        UPDATE inventory_stock 
+        SET quantity_available = quantity_available - NEW.quantity,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE part_id = NEW.part_id;
+        
+    ELSIF movement_name = 'Ajuste' THEN
+        -- Apply adjustment (can be positive or negative)
+        UPDATE inventory_stock 
+        SET quantity_available = quantity_available + NEW.quantity,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE part_id = NEW.part_id;
+        
+    ELSIF movement_name = 'Devolución' THEN
+        -- Add returned quantity back to stock
+        UPDATE inventory_stock 
+        SET quantity_available = quantity_available + NEW.quantity,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE part_id = NEW.part_id;
+        
+    ELSIF movement_name = 'Merma' THEN
+        -- Subtract lost/damaged quantity
+        UPDATE inventory_stock 
+        SET quantity_available = quantity_available - NEW.quantity,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE part_id = NEW.part_id;
+        
+    END IF;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_update_inventory_from_stock_movement
+    AFTER INSERT ON stock_movement
+    FOR EACH ROW
+    EXECUTE FUNCTION update_inventory_from_stock_movement();
 
 -- Apply to tables with updated_at column
 CREATE TRIGGER trg_person_updated_at BEFORE UPDATE ON person FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
