@@ -4,12 +4,14 @@ import com.project.ayd.mechanic_workshop.features.reports.enums.ReportFormat;
 import com.project.ayd.mechanic_workshop.features.reports.enums.ReportPeriod;
 import com.project.ayd.mechanic_workshop.features.reports.enums.ReportType;
 import jakarta.validation.constraints.NotNull;
+import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.Map;
 
 @Data
+@Builder
 public class ReportRequest {
     @NotNull(message = "Report type is required")
     private ReportType reportType;

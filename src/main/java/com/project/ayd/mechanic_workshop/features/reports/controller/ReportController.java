@@ -19,6 +19,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -280,5 +281,238 @@ public class ReportController {
                 reportType.name().toLowerCase(),
                 System.currentTimeMillis(),
                 format.getFileExtension());
+    }
+
+    // ================================
+    // FINANCIAL REPORT ENDPOINTS
+    // ================================
+
+    @GetMapping("/financial/income/monthly")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<List<Object[]>> getIncomeByMonth(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+        List<Object[]> data = reportService.getIncomeByMonth(startDate, endDate);
+        return ResponseEntity.ok(data);
+    }
+
+    @GetMapping("/financial/expenses/monthly")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<List<Object[]>> getExpensesByMonth(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+        List<Object[]> data = reportService.getExpensesByMonth(startDate, endDate);
+        return ResponseEntity.ok(data);
+    }
+
+    @GetMapping("/financial/providers")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<List<Object[]>> getProviderExpenses(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+        List<Object[]> data = reportService.getProviderExpenses(startDate, endDate);
+        return ResponseEntity.ok(data);
+    }
+
+    // ================================
+    // OPERATIONAL REPORT ENDPOINTS
+    // ================================
+
+    @GetMapping("/operational/works/by-date-type")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'EMPLEADO')")
+    public ResponseEntity<List<Object[]>> getWorksByDateAndType(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+        List<Object[]> data = reportService.getWorksByDateAndType(startDate, endDate);
+        return ResponseEntity.ok(data);
+    }
+
+    @GetMapping("/operational/works/by-employee")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'EMPLEADO')")
+    public ResponseEntity<List<Object[]>> getWorksByEmployee(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+        List<Object[]> data = reportService.getWorksByEmployee(startDate, endDate);
+        return ResponseEntity.ok(data);
+    }
+
+    @GetMapping("/operational/vehicle/history")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'EMPLEADO')")
+    public ResponseEntity<List<Object[]>> getVehicleMaintenanceHistory(
+            @RequestParam String licensePlate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+
+        if (startDate == null)
+            startDate = LocalDateTime.now().minusYears(2);
+        if (endDate == null)
+            endDate = LocalDateTime.now();
+
+        List<Object[]> data = reportService.getVehicleMaintenanceHistory(licensePlate, startDate, endDate);
+        return ResponseEntity.ok(data);
+    }
+
+    @GetMapping("/operational/employee/performance")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<List<Object[]>> getEmployeePerformanceReport(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+        List<Object[]> data = reportService.getEmployeePerformanceReport(startDate, endDate);
+        return ResponseEntity.ok(data);
+    }
+
+    // ================================
+    // INVENTORY & PARTS ENDPOINTS
+    // ================================
+
+    @GetMapping("/inventory/parts/usage")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'EMPLEADO')")
+    public ResponseEntity<List<Object[]>> getPartUsageStatistics(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+        List<Object[]> data = reportService.getPartUsageStatistics(startDate, endDate);
+        return ResponseEntity.ok(data);
+    }
+
+    @GetMapping("/inventory/parts/by-category")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'EMPLEADO')")
+    public ResponseEntity<List<Object[]>> getMostUsedPartsByCategory(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+        List<Object[]> data = reportService.getMostUsedPartsByCategory(startDate, endDate);
+        return ResponseEntity.ok(data);
+    }
+
+    @GetMapping("/inventory/alerts/low-stock")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'EMPLEADO')")
+    public ResponseEntity<List<Object[]>> getLowStockAlerts() {
+        List<Object[]> data = reportService.getLowStockAlerts();
+        return ResponseEntity.ok(data);
+    }
+
+    // ================================
+    // VEHICLE & BRAND ENDPOINTS
+    // ================================
+
+    @GetMapping("/vehicles/brand-statistics")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'EMPLEADO')")
+    public ResponseEntity<List<Object[]>> getVehicleBrandStatistics(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+        List<Object[]> data = reportService.getVehicleBrandStatistics(startDate, endDate);
+        return ResponseEntity.ok(data);
+    }
+
+    @GetMapping("/services/type-statistics")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'EMPLEADO')")
+    public ResponseEntity<List<Object[]>> getServiceTypeStatistics(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+        List<Object[]> data = reportService.getServiceTypeStatistics(startDate, endDate);
+        return ResponseEntity.ok(data);
+    }
+
+    // ================================
+    // CLIENT REPORT ENDPOINTS
+    // ================================
+
+    @GetMapping("/clients/service-ratings")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<List<Object[]>> getClientServiceRatings(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+        List<Object[]> data = reportService.getClientServiceRatings(startDate, endDate);
+        return ResponseEntity.ok(data);
+    }
+
+    // ================================
+    // MAINTENANCE REPORT ENDPOINTS
+    // ================================
+
+    @GetMapping("/maintenance/corrective")
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR', 'EMPLEADO')")
+    public ResponseEntity<List<Object[]>> getCorrectiveMaintenanceReport(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+        List<Object[]> data = reportService.getCorrectiveMaintenanceReport(startDate, endDate);
+        return ResponseEntity.ok(data);
+    }
+
+    // ================================
+    // TOP PERFORMERS ENDPOINTS
+    // ================================
+
+    @GetMapping("/analytics/top-mechanics")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<List<Object[]>> getTopPerformingMechanics(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
+            @RequestParam(defaultValue = "10") int limit) {
+        List<Object[]> data = reportService.getTopPerformingMechanics(startDate, endDate, limit);
+        return ResponseEntity.ok(data);
+    }
+
+    // ================================
+    // COMPREHENSIVE EXPORT ENDPOINTS
+    // ================================
+
+    @PostMapping("/export/comprehensive")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<Map<String, String>> generateComprehensiveReport(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
+            @RequestParam ReportFormat format) {
+
+        try {
+            // Generar múltiples reportes y combinarlos
+            String reportId = reportService.generateReport(ReportRequest.builder()
+                    .reportType(ReportType.DASHBOARD_SUMMARY)
+                    .format(format)
+                    .startDate(startDate)
+                    .endDate(endDate)
+                    .build()).getReportId();
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "Comprehensive report generated successfully",
+                    "reportId", reportId));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to generate comprehensive report"));
+        }
+    }
+
+    // ================================
+    // BULK EXPORT FUNCTIONALITY
+    // ================================
+
+    @PostMapping("/export/bulk")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public ResponseEntity<Map<String, Object>> generateBulkReports(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
+            @RequestParam List<ReportType> reportTypes,
+            @RequestParam ReportFormat format) {
+
+        try {
+            List<String> reportIds = new ArrayList<>();
+
+            for (ReportType reportType : reportTypes) {
+                String reportId = reportService.generateReport(ReportRequest.builder()
+                        .reportType(reportType)
+                        .format(format)
+                        .startDate(startDate)
+                        .endDate(endDate)
+                        .build()).getReportId();
+                reportIds.add(reportId);
+            }
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "Bulk reports generated successfully",
+                    "reportIds", reportIds,
+                    "count", reportIds.size()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to generate bulk reports"));
+        }
     }
 }
