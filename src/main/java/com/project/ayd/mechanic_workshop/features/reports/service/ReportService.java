@@ -12,6 +12,10 @@ import java.util.List;
 
 public interface ReportService {
 
+    // ================================
+    // CORE REPORT METHODS
+    // ================================
+
     ReportResponse generateReport(ReportRequest request);
 
     Resource downloadReport(String reportId);
@@ -20,18 +24,80 @@ public interface ReportService {
 
     void deleteExpiredReports();
 
+    byte[] exportReportData(ReportType reportType, LocalDateTime startDate,
+            LocalDateTime endDate, String format);
+
+    // ================================
+    // CONSOLIDATED REPORTS
+    // ================================
+
     FinancialReportResponse generateFinancialReport(LocalDateTime startDate, LocalDateTime endDate);
 
     OperationalReportResponse generateOperationalReport(LocalDateTime startDate, LocalDateTime endDate);
 
+    // ================================
+    // FINANCIAL REPORTS
+    // ================================
+
     List<Object[]> getIncomeByWeek(LocalDateTime startDate, LocalDateTime endDate);
 
-    List<Object[]> getPreventiveMaintenanceReport(LocalDateTime startDate, LocalDateTime endDate);
+    List<Object[]> getIncomeByMonth(LocalDateTime startDate, LocalDateTime endDate);
+
+    List<Object[]> getExpensesByMonth(LocalDateTime startDate, LocalDateTime endDate);
+
+    List<Object[]> getProviderExpenses(LocalDateTime startDate, LocalDateTime endDate);
+
+    // ================================
+    // OPERATIONAL REPORTS
+    // ================================
+
+    List<Object[]> getWorksByDateAndType(LocalDateTime startDate, LocalDateTime endDate);
+
+    List<Object[]> getWorksByEmployee(LocalDateTime startDate, LocalDateTime endDate);
+
+    List<Object[]> getVehicleMaintenanceHistory(String licensePlate, LocalDateTime startDate, LocalDateTime endDate);
+
+    List<Object[]> getEmployeePerformanceReport(LocalDateTime startDate, LocalDateTime endDate);
+
+    // ================================
+    // INVENTORY & PARTS REPORTS
+    // ================================
+
+    List<Object[]> getPartUsageStatistics(LocalDateTime startDate, LocalDateTime endDate);
 
     List<Object[]> getPartsByVehicleBrand(LocalDateTime startDate, LocalDateTime endDate);
 
+    List<Object[]> getMostUsedPartsByCategory(LocalDateTime startDate, LocalDateTime endDate);
+
+    List<Object[]> getLowStockAlerts();
+
+    // ================================
+    // VEHICLE & BRAND REPORTS
+    // ================================
+
+    List<Object[]> getVehicleBrandStatistics(LocalDateTime startDate, LocalDateTime endDate);
+
+    List<Object[]> getServiceTypeStatistics(LocalDateTime startDate, LocalDateTime endDate);
+
+    // ================================
+    // CLIENT REPORTS
+    // ================================
+
     List<Object[]> getClientHistoryReport(LocalDateTime startDate, LocalDateTime endDate);
 
-    byte[] exportReportData(ReportType reportType, LocalDateTime startDate,
-            LocalDateTime endDate, String format);
+    List<Object[]> getClientServiceRatings(LocalDateTime startDate, LocalDateTime endDate);
+
+    // ================================
+    // MAINTENANCE REPORTS
+    // ================================
+
+    List<Object[]> getPreventiveMaintenanceReport(LocalDateTime startDate, LocalDateTime endDate);
+
+    List<Object[]> getCorrectiveMaintenanceReport(LocalDateTime startDate, LocalDateTime endDate);
+
+    // ================================
+    // TOP PERFORMERS & ANALYTICS
+    // ================================
+
+    List<Object[]> getTopPerformingMechanics(LocalDateTime startDate, LocalDateTime endDate, int limit);
 }
