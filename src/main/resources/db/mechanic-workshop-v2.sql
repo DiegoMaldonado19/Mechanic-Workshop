@@ -635,8 +635,249 @@ CREATE TRIGGER trg_update_inventory_from_stock_movement
     FOR EACH ROW
     EXECUTE FUNCTION update_inventory_from_stock_movement();
 
+-- Trigger to update stock when purchase order items are received
+CREATE OR REPLACE FUNCTION update_stock_on_purchase_receipt()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.quantity_received > OLD.quantity_received THEN
+        -- Update inventory stock
+        UPDATE inventory_stock 
+        SET quantity_available = quantity_available + (NEW.quantity_received - OLD.quantity_received),
+            last_restocked = CURRENT_TIMESTAMP,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE part_id = NEW.part_id;
+        
+        -- Create stock movement record
+        INSERT INTO stock_movement (part_id, movement_type_id, quantity, reference_type_id, reference_id, created_by)
+        SELECT NEW.part_id, mt.id, (NEW.quantity_received - OLD.quantity_received), rt.id, NEW.purchase_order_id, 1
+        FROM movement_type mt, reference_type rt
+        WHERE mt.name = 'Entrada' AND rt.name = 'Orden de compra';
+    END IF;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_update_stock_on_purchase_receipt
+    AFTER UPDATE ON purchase_order_item
+    FOR EACH ROW
+    EXECUTE FUNCTION update_stock_on_purchase_receipt();
+
+-- Trigger to update purchase order status when all items are received
+CREATE OR REPLACE FUNCTION check_purchase_order_completion()
+RETURNS TRIGGER AS $$
+DECLARE
+    total_items INTEGER;
+    completed_items INTEGER;
+BEGIN
+    -- Count total items and completed items for this purchase order
+    SELECT COUNT(*) INTO total_items 
+    FROM purchase_order_item 
+    WHERE purchase_order_id = NEW.purchase_order_id;
+    
+    SELECT COUNT(*) INTO completed_items 
+    FROM purchase_order_item 
+    WHERE purchase_order_id = NEW.purchase_order_id 
+    AND quantity_received >= quantity_ordered;
+    
+    -- If all items are received, mark order as delivered
+    IF total_items = completed_items THEN
+        UPDATE purchase_order 
+        SET purchase_order_status_id = (SELECT id FROM purchase_order_status WHERE name = 'Entregada'),
+            actual_delivery_date = CURRENT_DATE,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = NEW.purchase_order_id;
+    END IF;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_check_purchase_order_completion
+    AFTER UPDATE ON purchase_order_item
+    FOR EACH ROW
+    EXECUTE FUNCTION check_purchase_order_completion();
+
+-- Trigger to handle failed login attempts and account locking
+CREATE OR REPLACE FUNCTION handle_failed_login_attempts()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.failed_login_attempts >= 5 THEN
+        NEW.locked_until = CURRENT_TIMESTAMP + INTERVAL '30 minutes';
+        NEW.is_active = FALSE;
+    END IF;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_handle_failed_login_attempts
+    BEFORE UPDATE ON "user"
+    FOR EACH ROW
+    WHEN (NEW.failed_login_attempts > OLD.failed_login_attempts)
+    EXECUTE FUNCTION handle_failed_login_attempts();
+
+-- Trigger to clean expired password reset tokens
+CREATE OR REPLACE FUNCTION cleanup_expired_tokens()
+RETURNS TRIGGER AS $$
+BEGIN
+    DELETE FROM password_reset_token 
+    WHERE expires_at < CURRENT_TIMESTAMP 
+    AND used = FALSE;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_cleanup_expired_tokens
+    AFTER INSERT ON password_reset_token
+    FOR EACH ROW
+    EXECUTE FUNCTION cleanup_expired_tokens();
+
+-- Trigger to generate invoice when work is completed
+CREATE OR REPLACE FUNCTION generate_invoice_on_work_completion()
+RETURNS TRIGGER AS $$
+DECLARE
+    total_labor DECIMAL(10,2);
+    total_parts DECIMAL(10,2);
+    total_amount DECIMAL(10,2);
+BEGIN
+    IF NEW.work_status_id = (SELECT id FROM work_status WHERE name = 'Completado') 
+       AND OLD.work_status_id != (SELECT id FROM work_status WHERE name = 'Completado') THEN
+        
+        -- Calculate total parts cost
+        SELECT COALESCE(SUM(wp.quantity_used * p.unit_price), 0) INTO total_parts
+        FROM work_part wp
+        JOIN part p ON wp.part_id = p.id
+        WHERE wp.work_id = NEW.id;
+        
+        -- Use labor_cost from work table
+        total_labor := COALESCE(NEW.labor_cost, 0);
+        total_amount := total_labor + total_parts;
+        
+        -- Generate invoice
+        INSERT INTO invoice (work_id, payment_status_id, subtotal, tax_amount, total_amount, issue_date, due_date)
+        VALUES (
+            NEW.id,
+            (SELECT id FROM payment_status WHERE name = 'Pendiente'),
+            total_amount,
+            total_amount * 0.12, -- 12% IVA
+            total_amount * 1.12,
+            CURRENT_DATE,
+            CURRENT_DATE + INTERVAL '30 days'
+        );
+    END IF;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_generate_invoice_on_work_completion
+    AFTER UPDATE ON work
+    FOR EACH ROW
+    EXECUTE FUNCTION generate_invoice_on_work_completion();
+
+-- Trigger to reserve stock when parts are assigned to work
+CREATE OR REPLACE FUNCTION reserve_stock_on_part_assignment()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'INSERT' OR (TG_OP = 'UPDATE' AND NEW.quantity_required > OLD.quantity_required) THEN
+        DECLARE
+            quantity_to_reserve INTEGER;
+        BEGIN
+            quantity_to_reserve := CASE 
+                WHEN TG_OP = 'INSERT' THEN NEW.quantity_required
+                ELSE NEW.quantity_required - OLD.quantity_required
+            END;
+            
+            -- Check if sufficient stock available
+            IF (SELECT quantity_available - quantity_reserved 
+                FROM inventory_stock 
+                WHERE part_id = NEW.part_id) < quantity_to_reserve THEN
+                RAISE EXCEPTION 'Insufficient stock available for part ID: %', NEW.part_id;
+            END IF;
+            
+            -- Reserve the stock
+            UPDATE inventory_stock 
+            SET quantity_reserved = quantity_reserved + quantity_to_reserve,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE part_id = NEW.part_id;
+        END;
+    END IF;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_reserve_stock_on_part_assignment
+    AFTER INSERT OR UPDATE ON work_part
+    FOR EACH ROW
+    EXECUTE FUNCTION reserve_stock_on_part_assignment();
+
+-- Trigger to release reserved stock when work is completed or cancelled
+CREATE OR REPLACE FUNCTION release_reserved_stock()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.work_status_id IN (
+        SELECT id FROM work_status WHERE name IN ('Completado', 'Cancelado', 'Finalizado sin ejecución')
+    ) AND OLD.work_status_id NOT IN (
+        SELECT id FROM work_status WHERE name IN ('Completado', 'Cancelado', 'Finalizado sin ejecución')
+    ) THEN
+        -- Release reserved stock for unused parts
+        UPDATE inventory_stock 
+        SET quantity_reserved = quantity_reserved - wp.quantity_required + wp.quantity_used,
+            updated_at = CURRENT_TIMESTAMP
+        FROM work_part wp
+        WHERE inventory_stock.part_id = wp.part_id 
+        AND wp.work_id = NEW.id;
+    END IF;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_release_reserved_stock
+    AFTER UPDATE ON work
+    FOR EACH ROW
+    EXECUTE FUNCTION release_reserved_stock();
+
+-- Trigger to create low stock alerts
+CREATE OR REPLACE FUNCTION check_low_stock_alert()
+RETURNS TRIGGER AS $$
+DECLARE
+    part_minimum INTEGER;
+    part_name VARCHAR(200);
+BEGIN
+    -- Get minimum stock and part name
+    SELECT p.minimum_stock, p.name INTO part_minimum, part_name
+    FROM part p 
+    WHERE p.id = NEW.part_id;
+    
+    -- Check if stock is below minimum (you'd need to create a stock_alert table)
+    IF NEW.quantity_available <= part_minimum THEN
+        -- This would require a stock_alert table or notification system
+        RAISE NOTICE 'Low stock alert: Part "%" (ID: %) has % units, minimum is %', 
+                     part_name, NEW.part_id, NEW.quantity_available, part_minimum;
+    END IF;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_check_low_stock_alert
+    AFTER UPDATE ON inventory_stock
+    FOR EACH ROW
+    WHEN (NEW.quantity_available != OLD.quantity_available)
+    EXECUTE FUNCTION check_low_stock_alert();
+
 -- Apply to tables with updated_at column
 CREATE TRIGGER trg_person_updated_at BEFORE UPDATE ON person FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER trg_user_updated_at BEFORE UPDATE ON "user" FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER trg_work_updated_at BEFORE UPDATE ON work FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER trg_vehicle_updated_at BEFORE UPDATE ON vehicle FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Add missing updated_at triggers
+CREATE TRIGGER trg_inventory_stock_updated_at BEFORE UPDATE ON inventory_stock FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER trg_part_updated_at BEFORE UPDATE ON part FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER trg_purchase_order_updated_at BEFORE UPDATE ON purchase_order FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER trg_invoice_updated_at BEFORE UPDATE ON invoice FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
