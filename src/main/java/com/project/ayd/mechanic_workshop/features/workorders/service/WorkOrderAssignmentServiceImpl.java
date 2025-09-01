@@ -126,12 +126,10 @@ public class WorkOrderAssignmentServiceImpl implements WorkOrderAssignmentServic
     @Override
     @Transactional(readOnly = true)
     public List<UserResponse> getAvailableEmployeesForAssignment() {
-        // Obtener empleados que no han alcanzado la capacidad máxima
         return userRepository.findAll().stream()
                 .filter(user -> {
-                    // Filtrar solo empleados y especialistas
                     String userType = user.getUserType().getName();
-                    return "EMPLEADO".equals(userType) || "ESPECIALISTA".equals(userType);
+                    return "Empleado".equals(userType) || "Especialista".equals(userType);
                 })
                 .filter(user -> {
                     Long workload = workRepository.countActiveWorksByEmployeeId(user.getId());
@@ -147,7 +145,7 @@ public class WorkOrderAssignmentServiceImpl implements WorkOrderAssignmentServic
         return userRepository.findAll().stream()
                 .filter(user -> {
                     String userType = user.getUserType().getName();
-                    return "EMPLEADO".equals(userType) || "ESPECIALISTA".equals(userType);
+                    return "Empleado".equals(userType) || "Especialista".equals(userType);
                 })
                 .filter(user -> {
                     Long workload = workRepository.countActiveWorksByEmployeeId(user.getId());
@@ -198,7 +196,7 @@ public class WorkOrderAssignmentServiceImpl implements WorkOrderAssignmentServic
         Optional<User> bestEmployee = userRepository.findAll().stream()
                 .filter(user -> {
                     String userType = user.getUserType().getName();
-                    return "EMPLEADO".equals(userType) || "ESPECIALISTA".equals(userType);
+                    return "Empleado".equals(userType) || "Especialista".equals(userType);
                 })
                 .filter(user -> {
                     Long workload = workRepository.countActiveWorksByEmployeeId(user.getId());

@@ -289,7 +289,7 @@ public class WorkSupportServiceImpl implements WorkSupportService {
 
         // Buscar especialistas disponibles (lógica simplificada)
         List<User> availableSpecialists = userRepository.findAll().stream()
-                .filter(user -> "ESPECIALISTA".equals(user.getUserType().getName()))
+                .filter(user -> "Especialista".equals(user.getUserType().getName()))
                 .toList();
 
         if (availableSpecialists.isEmpty()) {

@@ -129,17 +129,6 @@ public class ReportRepository {
                 return ((Number) query.getSingleResult()).longValue();
         }
 
-        public Long countTotalEmployees() {
-                String sql = """
-                                SELECT COUNT(*)
-                                FROM "user" u
-                                INNER JOIN user_type ut ON u.user_type_id = ut.id
-                                WHERE ut.name IN ('EMPLEADO', 'ESPECIALISTA')
-                                """;
-                Query query = entityManager.createNativeQuery(sql);
-                return ((Number) query.getSingleResult()).longValue();
-        }
-
         // ================================
         // FINANCIAL REPORTS
         // ================================
@@ -335,7 +324,7 @@ public class ReportRepository {
                                 INNER JOIN user_type ut ON u.user_type_id = ut.id
                                 LEFT JOIN work w ON u.id = w.assigned_employee_id AND w.created_at BETWEEN :startDate AND :endDate
                                 LEFT JOIN work_status ws ON w.work_status_id = ws.id
-                                WHERE ut.name IN ('EMPLEADO', 'ESPECIALISTA')
+                                WHERE ut.name IN ('Empleado', 'Especialista')
                                 GROUP BY u.id, p.first_name, p.last_name
                                 HAVING COUNT(w.id) > 0
                                 ORDER BY total_revenue DESC
@@ -623,7 +612,7 @@ public class ReportRepository {
                                 INNER JOIN user_type ut ON u.user_type_id = ut.id
                                 INNER JOIN work w ON u.id = w.assigned_employee_id
                                 INNER JOIN work_status ws ON w.work_status_id = ws.id
-                                WHERE ut.name IN ('EMPLEADO', 'ESPECIALISTA')
+                                WHERE ut.name IN ('Empleado', 'Especialista')
                                 AND w.created_at BETWEEN :startDate AND :endDate
                                 AND ws.name = 'Completado'
                                 GROUP BY u.id, p.first_name, p.last_name
@@ -655,5 +644,65 @@ public class ReportRepository {
                                 """;
                 Query query = entityManager.createNativeQuery(sql);
                 return query.getResultList();
+        }
+
+        public Long countTotalEmployees() {
+                String sql = """
+                                SELECT COUNT(*)
+                                FROM "user" u
+                                INNER JOIN user_type ut ON u.user_type_id = ut.id
+                                WHERE ut.name IN ('Empleado', 'Especialista')
+                                AND u.is_active = true
+                                """;
+                Query query = entityManager.createNativeQuery(sql);
+                return ((Number) query.getSingleResult()).longValue();
+        }
+
+        public Long countBusyEmployees() {
+                String sql = """
+                                SELECT COUNT(DISTINCT u.id)
+                                FROM "user" u
+                                INNER JOIN user_type ut ON u.user_type_id = ut.id
+                                WHERE ut.name IN ('Empleado', 'Especialista')
+                                AND u.is_active = true
+                                AND u.id IN (
+                                    SELECT DISTINCT w.assigned_employee_id
+                                    FROM work w
+                                    INNER JOIN work_status ws ON w.work_status_id = ws.id
+                                    WHERE w.assigned_employee_id IS NOT NULL
+                                    AND ws.id IN (2, 3)
+                                    GROUP BY w.assigned_employee_id
+                                    HAVING COUNT(w.id) >= 5
+                                )
+                                """;
+                Query query = entityManager.createNativeQuery(sql);
+                return ((Number) query.getSingleResult()).longValue();
+        }
+
+        public Long countAvailableEmployees() {
+                String sql = """
+                                SELECT COUNT(DISTINCT u.id)
+                                FROM "user" u
+                                INNER JOIN user_type ut ON u.user_type_id = ut.id
+                                WHERE ut.name IN ('Empleado', 'Especialista')
+                                AND u.is_active = true
+                                AND (u.id NOT IN (
+                                    SELECT DISTINCT w.assigned_employee_id
+                                    FROM work w
+                                    INNER JOIN work_status ws ON w.work_status_id = ws.id
+                                    WHERE w.assigned_employee_id IS NOT NULL
+                                    AND ws.id IN (2, 3)
+                                ) OR u.id IN (
+                                    SELECT w.assigned_employee_id
+                                    FROM work w
+                                    INNER JOIN work_status ws ON w.work_status_id = ws.id
+                                    WHERE w.assigned_employee_id IS NOT NULL
+                                    AND ws.id IN (2, 3)
+                                    GROUP BY w.assigned_employee_id
+                                    HAVING COUNT(w.id) < 5
+                                ))
+                                """;
+                Query query = entityManager.createNativeQuery(sql);
+                return ((Number) query.getSingleResult()).longValue();
         }
 }

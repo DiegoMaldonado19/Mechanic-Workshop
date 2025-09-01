@@ -45,8 +45,8 @@ public class DashboardServiceImpl implements DashboardService {
 
             // Métricas de empleados
             Long totalEmployees = reportRepository.countTotalEmployees();
-            Long busyEmployees = totalActiveWorks; // Simplificación
-            Long availableEmployees = Math.max(0L, totalEmployees - busyEmployees);
+            Long busyEmployees = reportRepository.countBusyEmployees();
+            Long availableEmployees = reportRepository.countAvailableEmployees();
 
             // Datos para gráficos
             LocalDateTime sixMonthsAgo = LocalDateTime.now().minusMonths(6);
