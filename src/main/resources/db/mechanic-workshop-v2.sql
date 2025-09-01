@@ -499,7 +499,7 @@ RETURNS TRIGGER AS $$
 BEGIN
     IF NEW.assigned_employee_id IS NOT NULL AND OLD.assigned_employee_id IS NULL THEN
         UPDATE work 
-        SET work_status_id = (SELECT id FROM work_status WHERE name = 'ASSIGNED'),
+        SET work_status_id = (SELECT id FROM work_status WHERE name = 'Asignado'),
             updated_at = CURRENT_TIMESTAMP
         WHERE id = NEW.id;
     END IF;
