@@ -23,4 +23,5 @@ public class AuthResponse {
     private String fullName;
     private Boolean requiresTwoFactor;
     private String message;
+    private String userCui;
 }

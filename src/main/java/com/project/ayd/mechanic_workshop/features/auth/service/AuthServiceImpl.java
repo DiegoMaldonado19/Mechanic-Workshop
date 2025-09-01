@@ -107,6 +107,7 @@ public class AuthServiceImpl implements AuthService {
                 .username(user.getUsername())
                 .userType(user.getUserType().getName())
                 .fullName(user.getPerson().getFirstName() + " " + user.getPerson().getLastName())
+                .userCui(user.getPerson().getCui())
                 .requiresTwoFactor(false)
                 .message("Authentication successful")
                 .build();
