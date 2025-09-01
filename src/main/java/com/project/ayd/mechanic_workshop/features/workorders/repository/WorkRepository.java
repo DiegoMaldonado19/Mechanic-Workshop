@@ -66,4 +66,20 @@ public interface WorkRepository extends JpaRepository<Work, Long> {
 
     @Query("SELECT SUM(w.actualCost) FROM Work w WHERE w.workStatus.name = 'Completado'")
     BigDecimal getTotalRevenue();
+
+    @Query("""
+    SELECT DISTINCT w FROM Work w 
+    LEFT JOIN FETCH w.vehicle v 
+    LEFT JOIN FETCH v.model vm 
+    LEFT JOIN FETCH vm.brand vb 
+    LEFT JOIN FETCH v.owner vo
+    LEFT JOIN FETCH w.serviceType st 
+    LEFT JOIN FETCH w.workStatus ws 
+    LEFT JOIN FETCH w.assignedEmployee ae 
+    LEFT JOIN FETCH ae.person aep
+    LEFT JOIN FETCH w.createdBy cb 
+    LEFT JOIN FETCH cb.person cbp
+    ORDER BY w.createdAt DESC
+        """)
+        Page<Work> findAllWithDetails(Pageable pageable);
 }

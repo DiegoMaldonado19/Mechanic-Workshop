@@ -88,8 +88,8 @@ public class WorkOrderServiceImpl implements WorkOrderService {
         @Override
         @Transactional(readOnly = true)
         public Page<WorkOrderResponse> getAllWorkOrders(Pageable pageable) {
-                return workRepository.findAll(pageable)
-                                .map(this::mapToWorkOrderResponse);
+        return workRepository.findAllWithDetails(pageable)
+                .map(this::mapToWorkOrderResponse);
         }
 
         @Override
