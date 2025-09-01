@@ -10,6 +10,9 @@ import com.project.ayd.mechanic_workshop.features.workorders.entity.*;
 import com.project.ayd.mechanic_workshop.features.workorders.enums.Priority;
 import com.project.ayd.mechanic_workshop.features.workorders.enums.WorkOrderStatus;
 import com.project.ayd.mechanic_workshop.features.workorders.repository.*;
+import com.project.ayd.mechanic_workshop.features.auth.entity.Person;
+import com.project.ayd.mechanic_workshop.features.vehicles.dto.VehicleResponse;
+import com.project.ayd.mechanic_workshop.features.vehicles.entity.VehicleModel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -552,45 +555,126 @@ public class WorkOrderServiceImpl implements WorkOrderService {
         }
 
         private UserResponse mapToUserResponse(User user) {
-                return UserResponse.builder()
-                                .id(user.getId())
-                                .cui(user.getPerson().getCui())
-                                .nit(user.getPerson().getNit())
-                                .firstName(user.getPerson().getFirstName())
-                                .lastName(user.getPerson().getLastName())
-                                .email(user.getPerson().getEmail())
-                                .phone(user.getPerson().getPhone())
-                                .username(user.getUsername())
-                                .userType(user.getUserType().getName())
-                                .gender(user.getPerson().getGender() != null ? user.getPerson().getGender().getName()
-                                                : null)
-                                .isActive(user.getIsActive())
-                                .lastLogin(user.getLastLogin())
-                                .createdAt(user.getCreatedAt())
-                                .build();
+        return UserResponse.builder()
+                .id(user.getId())
+                .cui(user.getPerson() != null ? user.getPerson().getCui() : null)
+                .nit(user.getPerson() != null ? user.getPerson().getNit() : null)
+                .firstName(user.getPerson() != null ? user.getPerson().getFirstName() : null)
+                .lastName(user.getPerson() != null ? user.getPerson().getLastName() : null)
+                .email(user.getPerson() != null ? user.getPerson().getEmail() : null)
+                .phone(user.getPerson() != null ? user.getPerson().getPhone() : null)
+                .username(user.getUsername())
+                .userType(user.getUserType() != null ? user.getUserType().getName() : null)
+                .gender(user.getPerson() != null && user.getPerson().getGender() != null 
+                        ? user.getPerson().getGender().getName() : null)
+                .isActive(user.getIsActive())
+                .lastLogin(user.getLastLogin())
+                .createdAt(user.getCreatedAt())
+                .build();
         }
 
         private WorkOrderResponse mapToWorkOrderResponse(Work work) {
-                String priorityDisplayName = work.getPriorityLevel() != null
-                                ? Priority.fromLevel(work.getPriorityLevel()).getDisplayName()
-                                : null;
+        String priorityDisplayName = work.getPriorityLevel() != null
+                ? Priority.fromLevel(work.getPriorityLevel()).getDisplayName()
+                : null;
 
-                return WorkOrderResponse.builder()
-                                .id(work.getId())
-                                .problemDescription(work.getProblemDescription())
-                                .estimatedHours(work.getEstimatedHours())
-                                .actualHours(work.getActualHours())
-                                .estimatedCost(work.getEstimatedCost())
-                                .actualCost(work.getActualCost())
-                                .clientApproved(work.getClientApproved())
-                                .clientApprovedAt(work.getClientApprovedAt())
-                                .startedAt(work.getStartedAt())
-                                .completedAt(work.getCompletedAt())
-                                .priorityLevel(work.getPriorityLevel())
-                                .priorityDisplayName(priorityDisplayName)
-                                .createdAt(work.getCreatedAt())
-                                .updatedAt(work.getUpdatedAt())
-                                .build();
+        return WorkOrderResponse.builder()
+                .id(work.getId())
+                .vehicle(work.getVehicle() != null ? mapToVehicleResponse(work.getVehicle()) : null)
+                .serviceType(work.getServiceType() != null ? mapToServiceTypeResponse(work.getServiceType()) : null)
+                .workStatus(work.getWorkStatus() != null ? mapToWorkStatusResponse(work.getWorkStatus()) : null)
+                .assignedEmployee(work.getAssignedEmployee() != null ? mapToUserResponse(work.getAssignedEmployee()) : null)
+                .problemDescription(work.getProblemDescription())
+                .estimatedHours(work.getEstimatedHours())
+                .actualHours(work.getActualHours())
+                .estimatedCost(work.getEstimatedCost())
+                .actualCost(work.getActualCost())
+                .clientApproved(work.getClientApproved())
+                .clientApprovedAt(work.getClientApprovedAt())
+                .startedAt(work.getStartedAt())
+                .completedAt(work.getCompletedAt())
+                .priorityLevel(work.getPriorityLevel())
+                .priorityDisplayName(priorityDisplayName)
+                .createdBy(work.getCreatedBy() != null ? mapToUserResponse(work.getCreatedBy()) : null)
+                .createdAt(work.getCreatedAt())
+                .updatedAt(work.getUpdatedAt())
+                .progressHistory(null) // Se carga bajo demanda
+                .parts(null)          // Se carga bajo demanda  
+                .quotations(null)     // Se carga bajo demanda
+                .build();
+        }
+
+        private VehicleResponse mapToVehicleResponse(Vehicle vehicle) {
+        return VehicleResponse.builder()
+                .id(vehicle.getId())
+                .licensePlate(vehicle.getLicensePlate())
+                .color(vehicle.getColor())
+                .vin(vehicle.getVin())
+                .model(vehicle.getModel() != null ? mapToVehicleModelResponse(vehicle.getModel()) : null)
+                .owner(vehicle.getOwner() != null ? mapToOwnerResponse(vehicle.getOwner()) : null)
+                .createdAt(vehicle.getCreatedAt())
+                .updatedAt(vehicle.getUpdatedAt())
+                .build();
+        }
+
+        private VehicleResponse.VehicleModelResponse mapToVehicleModelResponse(VehicleModel model) {
+        return VehicleResponse.VehicleModelResponse.builder()
+                .id(model.getId())
+                .name(model.getName())
+                .year(model.getYear())
+                .brand(model.getBrand() != null ? VehicleResponse.VehicleBrandResponse.builder()
+                        .id(model.getBrand().getId())
+                        .name(model.getBrand().getName())
+                        .country(model.getBrand().getCountry() != null ? VehicleResponse.CountryResponse.builder()
+                                .id(model.getBrand().getCountry().getId())
+                                .name(model.getBrand().getCountry().getName())
+                                .build() : null)
+                        .build() : null)
+                .engineSize(model.getEngineSize() != null ? VehicleResponse.EngineSizeResponse.builder()
+                        .id(model.getEngineSize().getId())
+                        .size(model.getEngineSize().getSize().toString())
+                        .description(model.getEngineSize().getDescription())
+                        .build() : null)
+                .transmissionType(model.getTransmissionType() != null ? VehicleResponse.TransmissionTypeResponse.builder()
+                        .id(model.getTransmissionType().getId())
+                        .name(model.getTransmissionType().getName())
+                        .description(model.getTransmissionType().getDescription())
+                        .build() : null)
+                .fuelType(model.getFuelType() != null ? VehicleResponse.FuelTypeResponse.builder()
+                        .id(model.getFuelType().getId())
+                        .name(model.getFuelType().getName())
+                        .description(model.getFuelType().getDescription())
+                        .build() : null)
+                .build();
+        }
+
+        private VehicleResponse.OwnerResponse mapToOwnerResponse(Person owner) {
+        return VehicleResponse.OwnerResponse.builder()
+                .cui(owner.getCui())
+                .nit(owner.getNit())
+                .firstName(owner.getFirstName())
+                .lastName(owner.getLastName())
+                .email(owner.getEmail())
+                .phone(owner.getPhone())
+                .build();
+        }
+
+        private ServiceTypeResponse mapToServiceTypeResponse(ServiceType serviceType) {
+        return ServiceTypeResponse.builder()
+                .id(serviceType.getId())
+                .name(serviceType.getName())
+                .description(serviceType.getDescription())
+                .createdAt(serviceType.getCreatedAt())
+                .build();
+        }
+
+        private WorkStatusResponse mapToWorkStatusResponse(WorkStatus workStatus) {
+        return WorkStatusResponse.builder()
+                .id(workStatus.getId())
+                .name(workStatus.getName())
+                .description(workStatus.getDescription())
+                .createdAt(workStatus.getCreatedAt())
+                .build();
         }
 
         private WorkProgressResponse mapToWorkProgressResponse(WorkProgress workProgress) {
@@ -635,24 +719,6 @@ public class WorkOrderServiceImpl implements WorkOrderService {
                                 .createdBy(mapToUserResponse(quotation.getCreatedBy()))
                                 .createdAt(quotation.getCreatedAt())
                                 .updatedAt(quotation.getUpdatedAt())
-                                .build();
-        }
-
-        private ServiceTypeResponse mapToServiceTypeResponse(ServiceType serviceType) {
-                return ServiceTypeResponse.builder()
-                                .id(serviceType.getId())
-                                .name(serviceType.getName())
-                                .description(serviceType.getDescription())
-                                .createdAt(serviceType.getCreatedAt())
-                                .build();
-        }
-
-        private WorkStatusResponse mapToWorkStatusResponse(WorkStatus workStatus) {
-                return WorkStatusResponse.builder()
-                                .id(workStatus.getId())
-                                .name(workStatus.getName())
-                                .description(workStatus.getDescription())
-                                .createdAt(workStatus.getCreatedAt())
                                 .build();
         }
 }
