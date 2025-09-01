@@ -64,6 +64,6 @@ public interface WorkRepository extends JpaRepository<Work, Long> {
     List<Work> findWorksForReporting(@Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate);
 
-    @Query("SELECT SUM(w.actualCost) FROM Work w WHERE w.workStatus.name = 'COMPLETADO'")
+    @Query("SELECT SUM(w.actualCost) FROM Work w WHERE w.workStatus.name = 'Completado'")
     BigDecimal getTotalRevenue();
 }

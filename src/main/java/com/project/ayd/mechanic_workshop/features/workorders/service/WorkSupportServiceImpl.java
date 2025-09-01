@@ -65,7 +65,7 @@ public class WorkSupportServiceImpl implements WorkSupportService {
                 .specializationNeeded(specializationType)
                 .reason(request.getReason())
                 .urgencyLevel(request.getUrgencyLevel())
-                .status(WorkSupport.SupportStatus.PENDING)
+                .status(WorkSupport.SupportStatus.Pendiente)
                 .build();
 
         // Si se especifica un especialista, asignarlo directamente
@@ -74,7 +74,7 @@ public class WorkSupportServiceImpl implements WorkSupportService {
                     .orElseThrow(() -> new IllegalArgumentException("Specialist not found"));
 
             workSupport.setAssignedSpecialist(specialist);
-            workSupport.setStatus(WorkSupport.SupportStatus.ASSIGNED);
+            workSupport.setStatus(WorkSupport.SupportStatus.Asignado);
             workSupport.setAssignedAt(LocalDateTime.now());
         }
 
@@ -123,7 +123,7 @@ public class WorkSupportServiceImpl implements WorkSupportService {
         WorkSupport workSupport = workSupportRepository.findById(supportId)
                 .orElseThrow(() -> new IllegalArgumentException("Support request not found"));
 
-        if (workSupport.getStatus() != WorkSupport.SupportStatus.PENDING) {
+        if (workSupport.getStatus() != WorkSupport.SupportStatus.Pendiente) {
             throw new IllegalStateException("Support request must be pending to assign specialist");
         }
 
@@ -131,7 +131,7 @@ public class WorkSupportServiceImpl implements WorkSupportService {
                 .orElseThrow(() -> new IllegalArgumentException("Specialist not found"));
 
         workSupport.setAssignedSpecialist(specialist);
-        workSupport.setStatus(WorkSupport.SupportStatus.ASSIGNED);
+        workSupport.setStatus(WorkSupport.SupportStatus.Asignado);
         workSupport.setAssignedAt(LocalDateTime.now());
 
         workSupport = workSupportRepository.save(workSupport);
@@ -152,8 +152,8 @@ public class WorkSupportServiceImpl implements WorkSupportService {
             User specialist = userRepository.findById(request.getAssignedSpecialistId())
                     .orElseThrow(() -> new IllegalArgumentException("Specialist not found"));
             workSupport.setAssignedSpecialist(specialist);
-            if (workSupport.getStatus() == WorkSupport.SupportStatus.PENDING) {
-                workSupport.setStatus(WorkSupport.SupportStatus.ASSIGNED);
+            if (workSupport.getStatus() == WorkSupport.SupportStatus.Pendiente) {
+                workSupport.setStatus(WorkSupport.SupportStatus.Asignado);
                 workSupport.setAssignedAt(LocalDateTime.now());
             }
         }
@@ -170,7 +170,7 @@ public class WorkSupportServiceImpl implements WorkSupportService {
             WorkSupport.SupportStatus newStatus = WorkSupport.SupportStatus.valueOf(request.getStatus());
             workSupport.setStatus(newStatus);
 
-            if (newStatus == WorkSupport.SupportStatus.COMPLETED) {
+            if (newStatus == WorkSupport.SupportStatus.Completado) {
                 workSupport.setCompletedAt(LocalDateTime.now());
             }
         }
@@ -189,11 +189,11 @@ public class WorkSupportServiceImpl implements WorkSupportService {
         WorkSupport workSupport = workSupportRepository.findById(supportId)
                 .orElseThrow(() -> new IllegalArgumentException("Support request not found"));
 
-        if (workSupport.getStatus() != WorkSupport.SupportStatus.ASSIGNED) {
+        if (workSupport.getStatus() != WorkSupport.SupportStatus.Asignado) {
             throw new IllegalStateException("Support request must be assigned before starting");
         }
 
-        workSupport.setStatus(WorkSupport.SupportStatus.IN_PROGRESS);
+        workSupport.setStatus(WorkSupport.SupportStatus.En_Progreso);
         workSupport = workSupportRepository.save(workSupport);
 
         log.info("Support request started successfully");
@@ -208,7 +208,7 @@ public class WorkSupportServiceImpl implements WorkSupportService {
         WorkSupport workSupport = workSupportRepository.findById(supportId)
                 .orElseThrow(() -> new IllegalArgumentException("Support request not found"));
 
-        workSupport.setStatus(WorkSupport.SupportStatus.COMPLETED);
+        workSupport.setStatus(WorkSupport.SupportStatus.Completado);
         workSupport.setCompletedAt(LocalDateTime.now());
 
         workSupport = workSupportRepository.save(workSupport);
@@ -225,7 +225,7 @@ public class WorkSupportServiceImpl implements WorkSupportService {
         WorkSupport workSupport = workSupportRepository.findById(supportId)
                 .orElseThrow(() -> new IllegalArgumentException("Support request not found"));
 
-        workSupport.setStatus(WorkSupport.SupportStatus.CANCELLED);
+        workSupport.setStatus(WorkSupport.SupportStatus.Cancelado);
         workSupport = workSupportRepository.save(workSupport);
 
         log.info("Support request cancelled successfully");
@@ -283,7 +283,7 @@ public class WorkSupportServiceImpl implements WorkSupportService {
         WorkSupport workSupport = workSupportRepository.findById(supportId)
                 .orElseThrow(() -> new IllegalArgumentException("Support request not found"));
 
-        if (workSupport.getStatus() != WorkSupport.SupportStatus.PENDING) {
+        if (workSupport.getStatus() != WorkSupport.SupportStatus.Pendiente) {
             throw new IllegalStateException("Support request must be pending to auto-assign");
         }
 

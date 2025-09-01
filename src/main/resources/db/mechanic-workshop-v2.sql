@@ -533,12 +533,12 @@ BEGIN
     -- Update payment status
     IF total_paid >= invoice_total THEN
         UPDATE invoice 
-        SET payment_status_id = (SELECT id FROM payment_status WHERE name = 'PAID'),
+        SET payment_status_id = (SELECT id FROM payment_status WHERE name = 'Pagado'),
             updated_at = CURRENT_TIMESTAMP
         WHERE id = NEW.invoice_id;
     ELSIF total_paid > 0 THEN
         UPDATE invoice 
-        SET payment_status_id = (SELECT id FROM payment_status WHERE name = 'PARTIAL'),
+        SET payment_status_id = (SELECT id FROM payment_status WHERE name = 'Parcial'),
             updated_at = CURRENT_TIMESTAMP
         WHERE id = NEW.invoice_id;
     END IF;

@@ -50,7 +50,7 @@ public class WorkSupport {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     @Builder.Default
-    private SupportStatus status = SupportStatus.PENDING;
+    private SupportStatus status = SupportStatus.Pendiente;
 
     @Column(name = "specialist_notes", columnDefinition = "TEXT")
     private String specialistNotes;
@@ -73,10 +73,10 @@ public class WorkSupport {
     private LocalDateTime updatedAt;
 
     public enum SupportStatus {
-        PENDING,
-        ASSIGNED,
-        IN_PROGRESS,
-        COMPLETED,
-        CANCELLED
+        Pendiente,
+        Asignado,
+        En_Progreso,
+        Completado,
+        Cancelado
     }
 }

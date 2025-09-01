@@ -40,7 +40,7 @@ public interface WorkSupportRepository extends JpaRepository<WorkSupport, Long> 
     @Query("SELECT COUNT(ws) FROM WorkSupport ws WHERE ws.status = :status")
     Long countByStatus(@Param("status") WorkSupport.SupportStatus status);
 
-    @Query("SELECT COUNT(ws) FROM WorkSupport ws WHERE ws.assignedSpecialist.id = :specialistId AND ws.status IN ('Asignado', 'En Progreso')")
+    @Query("SELECT COUNT(ws) FROM WorkSupport ws WHERE ws.assignedSpecialist.id = :specialistId AND ws.status IN ('Asignado', 'En_Progreso')")
     Long countActiveSupportsForSpecialist(@Param("specialistId") Long specialistId);
 
     @Query("SELECT ws FROM WorkSupport ws WHERE ws.assignedSpecialist IS NULL AND ws.status = 'Pendiente' ORDER BY ws.urgencyLevel DESC, ws.createdAt ASC")

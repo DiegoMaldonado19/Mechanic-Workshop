@@ -513,7 +513,7 @@ INSERT INTO service_type (name, description) VALUES
 INSERT INTO work_status (name, description) VALUES
 ('Pendiente', 'Trabajo creado pero no asignado'),
 ('Asignado', 'Trabajo asignado pero no iniciado'),
-('En progreso', 'Trabajo actualmente en ejecución'),
+('En_Progreso', 'Trabajo actualmente en ejecución'),
 ('Completado', 'Trabajo finalizado exitosamente'),
 ('Cancelado', 'Trabajo cancelado por cliente o sistema'),
 ('Finalizado sin ejecución', 'Evaluación completada pero cliente declinó servicio');
