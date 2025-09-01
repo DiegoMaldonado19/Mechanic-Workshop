@@ -31,7 +31,7 @@ public interface WorkSupportRepository extends JpaRepository<WorkSupport, Long> 
     Page<WorkSupport> findByStatusOrderByUrgencyAndCreated(@Param("status") WorkSupport.SupportStatus status,
             Pageable pageable);
 
-    @Query("SELECT ws FROM WorkSupport ws WHERE ws.specializationNeeded.id = :specializationId AND ws.status IN ('PENDING', 'ASSIGNED') ORDER BY ws.urgencyLevel DESC, ws.createdAt ASC")
+    @Query("SELECT ws FROM WorkSupport ws WHERE ws.specializationNeeded.id = :specializationId AND ws.status IN ('Pendiente', 'Asignado') ORDER BY ws.urgencyLevel DESC, ws.createdAt ASC")
     List<WorkSupport> findPendingSupportBySpecialization(@Param("specializationId") Long specializationId);
 
     @Query("SELECT ws FROM WorkSupport ws WHERE ws.urgencyLevel = :urgencyLevel ORDER BY ws.createdAt ASC")
@@ -40,15 +40,15 @@ public interface WorkSupportRepository extends JpaRepository<WorkSupport, Long> 
     @Query("SELECT COUNT(ws) FROM WorkSupport ws WHERE ws.status = :status")
     Long countByStatus(@Param("status") WorkSupport.SupportStatus status);
 
-    @Query("SELECT COUNT(ws) FROM WorkSupport ws WHERE ws.assignedSpecialist.id = :specialistId AND ws.status IN ('ASSIGNED', 'IN_PROGRESS')")
+    @Query("SELECT COUNT(ws) FROM WorkSupport ws WHERE ws.assignedSpecialist.id = :specialistId AND ws.status IN ('Asignado', 'En Progreso')")
     Long countActiveSupportsForSpecialist(@Param("specialistId") Long specialistId);
 
-    @Query("SELECT ws FROM WorkSupport ws WHERE ws.assignedSpecialist IS NULL AND ws.status = 'PENDING' ORDER BY ws.urgencyLevel DESC, ws.createdAt ASC")
+    @Query("SELECT ws FROM WorkSupport ws WHERE ws.assignedSpecialist IS NULL AND ws.status = 'Pendiente' ORDER BY ws.urgencyLevel DESC, ws.createdAt ASC")
     List<WorkSupport> findUnassignedPendingSupports();
 
     @Query("SELECT ws FROM WorkSupport ws WHERE ws.work.assignedEmployee.id = :employeeId ORDER BY ws.createdAt DESC")
     List<WorkSupport> findSupportRequestsByEmployee(@Param("employeeId") Long employeeId);
 
-    @Query("SELECT DISTINCT ws.specializationNeeded FROM WorkSupport ws WHERE ws.status = 'PENDING'")
+    @Query("SELECT DISTINCT ws.specializationNeeded FROM WorkSupport ws WHERE ws.status = 'Pendiente'")
     List<WorkSupport> findRequiredSpecializationsForPendingSupports();
 }
